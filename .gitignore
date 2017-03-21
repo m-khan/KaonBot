@@ -1,0 +1,9 @@
+*.bwta
+.settings/org.eclipse.jdt.core.prefs
+*.project
+*.classpath
+com.sun.jmx.remote.internal.ServerCommunicatorAdmin$Timeout.class
+*.log
+*.class
+*.dll
+lib/bwmirror_v2_5.jar
