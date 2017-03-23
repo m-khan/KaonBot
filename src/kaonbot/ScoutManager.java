@@ -6,12 +6,15 @@ import java.util.Map;
 
 import bwapi.Game;
 import bwapi.Unit;
+import bwta.BaseLocation;
+import bwta.Polygon;
 
 
 public class ScoutManager extends AbstractManager {
 
-	ArrayList<Scout> scouts = new ArrayList<Scout>();
+	ArrayList<BaseScout> scouts = new ArrayList<BaseScout>();
 	Map<Integer, Unit> enemies = new HashMap<Integer, Unit>();
+	
 	
 	public ScoutManager(double baselinePriority, double volatility) {
 		super(baselinePriority, volatility);
@@ -72,16 +75,39 @@ public class ScoutManager extends AbstractManager {
 		
 	}
 	
-	private class Scout extends Behavior{
+	private class BaseScout extends Behavior{
 
-		public Scout(Claim unit) {
+		BaseLocation toScout;
+		int polygonIndex = 0;
+		final int MICRO_LOCK = 5;
+		boolean foundBase = false;
+		
+		public BaseScout(Claim unit, BaseLocation base) {
 			super(unit);
-
+			toScout = base;
 		}
 
 		@Override
 		public boolean update() {
-
+			if(KaonBot.getGame().getFrameCount() % MICRO_LOCK != 0){
+				return false;
+			}
+			
+			Polygon poly = toScout.getRegion().getPolygon();
+			
+			if(!foundBase && poly.isInside(getUnit().getPosition())){
+				foundBase = true;
+				polygonIndex = poly.getPoints().indexOf(poly.getNearestPoint(getUnit().getPosition()));
+			} else {
+				getUnit().move(toScout.getPosition());
+			}
+			
+			if(foundBase){
+				if(poly.getNearestPoint(getUnit().getPosition()) == poly.getPoints().get(polygonIndex)){
+					polygonIndex++;
+				}
+				getUnit().move(poly.getPoints().get(polygonIndex));
+			}
 			return false;
 		}
 		
