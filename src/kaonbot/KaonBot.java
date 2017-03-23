@@ -339,7 +339,7 @@ public class KaonBot extends DefaultBWListener {
     }
     
     public void ggCheck(){
-    	if(supply == 0 && getMinerals() == 0){
+    	if(supply == 0 && getMinerals() < 50){
     		game.sendText("gg");
     		game.leaveGame();
     	}

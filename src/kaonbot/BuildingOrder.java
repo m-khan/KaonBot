@@ -202,7 +202,7 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 				if(builder.getPosition().getDistance(order.getPosition().toPosition()) > 20){
 					claim.touch();
 				}
-				builder.move(order.getPosition().toPosition());
+				builder.attack(order.getPosition().toPosition());
 				order.retry();
 			}
 		}
