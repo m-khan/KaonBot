@@ -13,8 +13,9 @@ import bwta.Polygon;
 public class ScoutManager extends AbstractManager {
 
 	ArrayList<BaseScout> scouts = new ArrayList<BaseScout>();
-	Map<Integer, Unit> enemies = new HashMap<Integer, Unit>();
-	
+	ArrayList<Unit> enemyBases = new ArrayList<Unit>();
+	Map<BaseLocation, Integer> lastChecked = new HashMap<BaseLocation, Integer>();
+	Map<BaseLocation, Integer> numBuildings = new HashMap<BaseLocation, Integer>();
 	
 	public ScoutManager(double baselinePriority, double volatility) {
 		super(baselinePriority, volatility);
@@ -23,16 +24,40 @@ public class ScoutManager extends AbstractManager {
 
 	@Override
 	public void init(Game game) {
-		// TODO Auto-generated method stub
+		for(BaseLocation b: BWTA.getBaseLocations()){
+			lastChecked.put(b, 0);
+			numBuildings.put(b, 0);
+		}
+	}
 
+	public void setChecked(BaseLocation b){
+		lastChecked.set(b, KaonBot.getGame().getFrameCount());
+	}
+	
+	@Override
+	public void handleNewUnit(Unit unit, boolean friendly, boolean enemy) {
+		if(enemy && unit.getType().isBuilding){
+			for(BaseLocation b: BWTA.getBaseLocations()){
+				if(/*unit same region as base location*/)
+				{
+					numBuildings.replace(b, numBuildings.get(b) + 1);
+				}
+			}
+		}
 	}
 
 	@Override
-	public void handleNewUnit(Unit unit, boolean friendly, boolean enemy) {
-		// TODO Auto-generated method stub
-
+	public void handleUnitDestroy(Unit u, boolean friendly, boolean enemy) {
+		if(enemy && unit.getType().isBuilding){
+			for(BaseLocation b: BWTA.getBaseLocations()){
+				if(/*unit same region as base location*/)
+				{
+					numBuildings.replace(b, numBuildings.get(b) - 1);
+				}
+			}
+		}
 	}
-
+	
 	@Override
 	public void handleCompletedBuilding(Unit unit, boolean friendly) {
 		// TODO Auto-generated method stub
@@ -69,12 +94,6 @@ public class ScoutManager extends AbstractManager {
 
 	}
 
-	@Override
-	public void handleUnitDestroy(Unit u, boolean friendly, boolean enemy) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	private class BaseScout extends Behavior{
 
 		BaseLocation toScout;
@@ -93,12 +112,26 @@ public class ScoutManager extends AbstractManager {
 				return false;
 			}
 			
+			if(!claimList.containsKey(getUnit().getID())){
+				getUnit().stop();
+				return true;
+			}
+
+			if(!getUnit().exists() || getUnit().getOrder() == null){
+				return true;
+			}
+			
+			if(getUnit().isStuck()){
+				return true;
+			}
+			
 			Polygon poly = toScout.getRegion().getPolygon();
 			
 			if(!foundBase && poly.isInside(getUnit().getPosition())){
 				foundBase = true;
 				polygonIndex = poly.getPoints().indexOf(poly.getNearestPoint(getUnit().getPosition()));
 			} else {
+				touchClaim();
 				getUnit().move(toScout.getPosition());
 			}
 			
@@ -106,6 +139,7 @@ public class ScoutManager extends AbstractManager {
 				if(poly.getNearestPoint(getUnit().getPosition()) == poly.getPoints().get(polygonIndex)){
 					polygonIndex++;
 				}
+				touchClaim();
 				getUnit().move(poly.getPoints().get(polygonIndex));
 			}
 			return false;
