@@ -9,6 +9,7 @@ import java.util.Map;
 import bwapi.Color;
 import bwapi.Game;
 import bwapi.Unit;
+import bwapi.UnitType;
 
 public abstract class AbstractManager implements Manager{
 	private double priorityScore;
@@ -99,6 +100,9 @@ public abstract class AbstractManager implements Manager{
 		public abstract boolean update();
 		public Unit getUnit(){
 			return unit.unit;
+		}
+		public UnitType getType(){
+			return unit.unitType;
 		}
 		public void touchClaim(){
 			unit.touch();

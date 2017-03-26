@@ -1,46 +1,68 @@
 package kaonbot;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import bwapi.Color;
 import bwapi.Game;
+import bwapi.Position;
 import bwapi.Unit;
+import bwta.BWTA;
 import bwta.BaseLocation;
 import bwta.Polygon;
 
 
 public class ScoutManager extends AbstractManager {
 
-	ArrayList<BaseScout> scouts = new ArrayList<BaseScout>();
-	ArrayList<Unit> enemyBases = new ArrayList<Unit>();
-	Map<BaseLocation, Integer> lastChecked = new HashMap<BaseLocation, Integer>();
-	Map<BaseLocation, Integer> numBuildings = new HashMap<BaseLocation, Integer>();
+	private ArrayList<BaseScout> scouts = new ArrayList<BaseScout>();
+	private Map<BaseLocation, Integer> lastChecked = new HashMap<BaseLocation, Integer>();
+	private Map<BaseLocation, Integer> numBuildings = new HashMap<BaseLocation, Integer>();
+	
+	final double SPOTTED_DECREMENT = 0.1;
+	final double NEED_CLAIMS = 0.005;
+	final double SCOUT_RATIO; // decided based on baselinePriority
+	final double SCOUT_RATIO_MULTIPLIER = 0.2; //max amount of supply that can be scouts
+	final double NO_LOCATIONS_TO_CHECK = -1.0;
+	final int SCOUT_POLY_DISTANCE_MULTIPLIER = 40;
 	
 	public ScoutManager(double baselinePriority, double volatility) {
 		super(baselinePriority, volatility);
-		// TODO Auto-generated constructor stub
+		
+		SCOUT_RATIO =  0.15;//baselinePriority * SCOUT_RATIO_MULTIPLIER;
+		
+		debugColor = new Color(100, 255, 100);
+	
+	}
+	
+	@Override
+	public String getName(){
+		return "SCOUTS " + scouts.size();
 	}
 
 	@Override
 	public void init(Game game) {
 		for(BaseLocation b: BWTA.getBaseLocations()){
-			lastChecked.put(b, 0);
+			lastChecked.put(b, null);
 			numBuildings.put(b, 0);
 		}
 	}
 
 	public void setChecked(BaseLocation b){
-		lastChecked.set(b, KaonBot.getGame().getFrameCount());
+		lastChecked.put(b, KaonBot.getGame().getFrameCount());
 	}
 	
 	@Override
 	public void handleNewUnit(Unit unit, boolean friendly, boolean enemy) {
-		if(enemy && unit.getType().isBuilding){
+		if(enemy && unit.getType().isBuilding()){
 			for(BaseLocation b: BWTA.getBaseLocations()){
-				if(/*unit same region as base location*/)
+				if(b.getRegion().getPolygon().isInside(unit.getPosition()))
 				{
-					numBuildings.replace(b, numBuildings.get(b) + 1);
+					numBuildings.put(b, numBuildings.get(b) + 1);
+					setChecked(b);
+					incrementPriority(getVolitility() * SPOTTED_DECREMENT, false);
 				}
 			}
 		}
@@ -48,11 +70,13 @@ public class ScoutManager extends AbstractManager {
 
 	@Override
 	public void handleUnitDestroy(Unit u, boolean friendly, boolean enemy) {
-		if(enemy && unit.getType().isBuilding){
+		if(enemy && u.getType().isBuilding()){
 			for(BaseLocation b: BWTA.getBaseLocations()){
-				if(/*unit same region as base location*/)
+				if(b.getRegion().getPolygon().isInside(u.getPosition()))
 				{
-					numBuildings.replace(b, numBuildings.get(b) - 1);
+					numBuildings.put(b, numBuildings.get(b) - 1);
+					setChecked(b);
+					incrementPriority(getVolitility() * SPOTTED_DECREMENT, false);
 				}
 			}
 		}
@@ -60,50 +84,173 @@ public class ScoutManager extends AbstractManager {
 	
 	@Override
 	public void handleCompletedBuilding(Unit unit, boolean friendly) {
-		// TODO Auto-generated method stub
-
+		// don't need to do anything here
 	}
 
 	@Override
 	public ArrayList<Double> claimUnits(List<Unit> unitList) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		ArrayList<Double> toReturn = new ArrayList<Double>();
+		boolean needClaims = false;
+		
+		
+		if((KaonBot.getSupply() * SCOUT_RATIO) / 2 > scouts.size() + 1){
+			needClaims = true;
+			incrementPriority(getVolitility() * NEED_CLAIMS, false);
+		} else {
+			//KaonBot.print(KaonBot.getSupply() / (2 * SCOUT_RATIO) + " < " + scouts.size() + 1);
+		}
+		
+		for(int i = 0; i < unitList.size(); i++){
+			if(!needClaims){
+				toReturn.add(DO_NOT_WANT);
+			} else {
+				toReturn.add(usePriority(1.0 / (scouts.size() + 1)));
+			}
+		}
+		
+		return toReturn;
 	}
 
 	@Override
 	public void runFrame() {
-		// TODO Auto-generated method stub
+		List<BaseScout> toRemove = new LinkedList<BaseScout>();
+		for(BaseScout scout: scouts){
+			if(scout.update()){
+				toRemove.add(scout);
+			}
+		}
+		
+		for(BaseScout s: toRemove){
+			scouts.remove(s);
+			claimList.get(s.getUnit().getID()).free();
+		}
 
 	}
 
 	@Override
 	public List<ProductionOrder> getProductionRequests() {
-		// TODO Auto-generated method stub
-		return null;
+		// this manager doesn't build anything
+		return new ArrayList<ProductionOrder>();
 	}
 
 	@Override
 	public void assignNewUnitBehaviors() {
-		// TODO Auto-generated method stub
+		// we only assign one unit here, we remove the rest
+		
+		double max = 0;
+		Claim maxClaim = null;
+		for(Claim c: newUnits){
+			double value = c.unitType.topSpeed() + c.unitType.groundWeapon().damageAmount();
+			if(max < value){
+				max = value;
+				maxClaim = c;
+			}
+		}
+		
+		List<Claim> toFree = new ArrayList<Claim>();
+		for(Claim c: newUnits){
+			if(c != maxClaim){
+				toFree.add(c);
+			}
+		}
+		for(Claim c: toFree){
+			c.free();
+		}
+		
+		if(maxClaim != null){
+			KaonBot.print("NEW CLAIM: " + maxClaim, true);
+			
+			BaseLocation toCheck = null;
+			
+			List<BaseLocation> activeScouts = getActiveScoutLocations();
+			List<BaseLocation> ourBases = KaonBot.econManager.getBases();
 
+			boolean isStart = false;
+			
+			// check for unscouted start locations first
+			for(BaseLocation b: BWTA.getStartLocations()){
+				if(activeScouts.contains(b) || ourBases.contains(b)){
+					continue;
+				}
+				
+				if(lastChecked.get(b) == null){
+					toCheck = b;
+					isStart = true;
+					break;
+				}
+			}
+			
+			if(toCheck == null){
+				Integer oldest = KaonBot.getGame().getFrameCount();
+				
+				for(BaseLocation b: BWTA.getBaseLocations()){
+					if(activeScouts.contains(b) || ourBases.contains(b)){
+						continue;
+					}
+					
+					Integer checked = lastChecked.get(b);
+					
+					if(checked == null){
+						toCheck = b;
+						break;
+					} else {
+						if(oldest > checked){
+							oldest = checked;
+							toCheck = b;
+						}
+					}
+				}
+				// get oldest "checked" base location
+			}
+			
+			// TODO non-start locations
+			
+			if(toCheck != null){
+				scouts.add(new BaseScout(maxClaim, toCheck, isStart));
+			} else {
+				KaonBot.print(getName() + ": No scout locations to check");
+				incrementPriority(getVolitility() * NO_LOCATIONS_TO_CHECK, false);
+			}
+		}
+
+		newUnits.clear();
 	}
 
+	public List<BaseLocation> getActiveScoutLocations(){
+		List<BaseLocation> toReturn = new ArrayList<BaseLocation>(scouts.size());
+		for(BaseScout scout: scouts){
+			toReturn.add(scout.toScout);
+		}
+		return toReturn;
+	}
+	
 	@Override
 	protected void addCommandeerCleanup(Claim claim) {
-		// TODO Auto-generated method stub
-
+		Iterator<BaseScout> it = scouts.iterator();
+		while(it.hasNext()){
+			BaseScout bs = it.next();
+			if(bs.getUnit() == claim.unit){
+				it.remove();
+			}
+		}
 	}
 
 	private class BaseScout extends Behavior{
 
 		BaseLocation toScout;
 		int polygonIndex = 0;
+		int fullLapIndex = -1;
 		final int MICRO_LOCK = 5;
 		boolean foundBase = false;
+		final boolean isStartScout;
+		final int POLY_DISTANCE;
 		
-		public BaseScout(Claim unit, BaseLocation base) {
+		public BaseScout(Claim unit, BaseLocation base, boolean isStartScout) {
 			super(unit);
 			toScout = base;
+			this.isStartScout = isStartScout;
+			POLY_DISTANCE = (int) getType().topSpeed() * SCOUT_POLY_DISTANCE_MULTIPLIER;
 		}
 
 		@Override
@@ -126,24 +273,67 @@ public class ScoutManager extends AbstractManager {
 			}
 			
 			Polygon poly = toScout.getRegion().getPolygon();
+			List<Position> points = poly.getPoints();
 			
-			if(!foundBase && poly.isInside(getUnit().getPosition())){
+			if(!foundBase && getUnit().getDistance(toScout.getPoint()) < getType().sightRange()){
 				foundBase = true;
-				polygonIndex = poly.getPoints().indexOf(poly.getNearestPoint(getUnit().getPosition()));
+				Position nearestPoint = poly.getNearestPoint(getUnit().getPosition());
+				
+				for(int i = 0; i < points.size(); i++){
+					if(nearestPoint.equals(points.get(i))){
+						polygonIndex = i;
+						break;
+					}
+				}
+				
+				fullLapIndex = polygonIndex;
+				setChecked(toScout);
+				if(isStartScout && numBuildings.get(toScout) <= 0){
+					return true;
+				}
+				return false;
 			} else {
 				touchClaim();
 				getUnit().move(toScout.getPosition());
 			}
 			
 			if(foundBase){
-				if(poly.getNearestPoint(getUnit().getPosition()) == poly.getPoints().get(polygonIndex)){
+				// check bounds
+				if(polygonIndex >= poly.getPoints().size()){
+					polygonIndex = 0;
+				}
+				
+				if(getUnit().getPosition().getDistance(points.get(polygonIndex)) < POLY_DISTANCE){
 					polygonIndex++;
+				}
+				
+				if(polygonIndex == fullLapIndex){
+					setChecked(toScout);
+					if(numBuildings.get(toScout) <= 0){
+						return true;
+					}
 				}
 				touchClaim();
 				getUnit().move(poly.getPoints().get(polygonIndex));
 			}
 			return false;
 		}
+	}
+	
+	@Override
+	public void displayDebugGraphics(Game game){
+		super.displayDebugGraphics(game);
+		
+		for(BaseScout s: scouts){
+			if(s.foundBase){
+				game.drawLineMap(s.getUnit().getPosition(), s.toScout.getRegion().getPolygon().getPoints().get(s.polygonIndex), debugColor);
+				game.drawCircleMap(s.getUnit().getPosition(), s.POLY_DISTANCE, debugColor);
+			} else {
+				game.drawLineMap(s.getUnit().getPosition(), s.toScout.getPosition(), debugColor);
+			}
+		}
+		
+		
 		
 	}
 

@@ -38,6 +38,8 @@ public class EconomyManager extends AbstractManager{
 	public EconomyManager(double baselinePriority, double volatilityScore)
 	{
 		super(baselinePriority, volatilityScore);
+		
+		debugColor = new Color(200, 200, 200);
 	}
 	
 	@Override
@@ -531,7 +533,7 @@ public class EconomyManager extends AbstractManager{
 //													 "\nNeed: " + b.requiredMiners());
 				
 				for(Miner m: b.miners){
-					game.drawLineMap(m.resource.getPosition(), m.getUnit().getPosition(), new Color(100, 100, 200));
+					game.drawLineMap(m.resource.getPosition(), m.getUnit().getPosition(), debugColor);
 					game.drawTextMap(m.resource.getPosition(), m.resource.getResources() + "/" + m.resource.getInitialResources());
 					game.drawTextMap(m.getUnit().getPosition(), m.getUnit().getOrder().toString());
 				}

@@ -54,6 +54,9 @@ public class DefenseManager extends AbstractManager {
 	
 	public DefenseManager(double baselinePriority, double volitilityScore) {
 		super(baselinePriority, volitilityScore);
+		
+		debugColor = new Color(100, 100, 255);
+		
 		raxBase = KaonBot.getStartPosition().getTilePosition();
 	}
 	
@@ -557,6 +560,7 @@ public class DefenseManager extends AbstractManager {
 	
 	@Override
 	public void displayDebugGraphics(Game game){
+		super.displayDebugGraphics(game);
 		if(nextRax != null){
 			game.drawCircleMap(nextRax.toPosition(), frameCount, debugColor);
 		}
@@ -568,7 +572,7 @@ public class DefenseManager extends AbstractManager {
 		for(Defender r: rushers){
 			//String toDraw = r.getUnit().getOrder().toString();
 			//game.drawTextMap(r.getUnit().getPosition(), toDraw);
-			KaonBot.getGame().drawLineMap(r.getUnit().getPosition(), r.targetPosition, new Color(0, 0, 255));
+			KaonBot.getGame().drawLineMap(r.getUnit().getPosition(), r.targetPosition, debugColor);
 			game.drawCircleMap(r.getUnit().getPosition(), r.getUnit().getGroundWeaponCooldown(), new Color(0, 0, 0));
 			if(r.getUnit().isStuck()) game.drawCircleMap(r.getUnit().getPosition(), 2, new Color(255, 0, 0), true);
 		}
@@ -625,13 +629,13 @@ public class DefenseManager extends AbstractManager {
 			}
 			if(target != null && target.exists()){
 				targetPosition = target.getPosition();
-//				if(getUnit().getType().groundWeapon().maxRange() < getUnit().getDistance(targetPosition)){
+//				if(getType().groundWeapon().maxRange() < getUnit().getDistance(targetPosition)){
 //					KaonBot.print("IN RANGE: " + microCount);
 //					getUnit().attack(target);
 //					microCount = 0;
 //					return false;
 //				}
-			}else if((getUnit().getDistance(targetPosition) < getUnit().getType().sightRange()))
+			}else if((getUnit().getDistance(targetPosition) < getType().sightRange()))
 			{
 				//KaonBot.print(getUnit().getID() + " NOTHING HERE: " + microCount);
 				if(getUnit().getOrder() == Order.AttackMove){

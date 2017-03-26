@@ -60,6 +60,8 @@ public class RushManager extends AbstractManager {
 	public RushManager(double baselinePriority, double volitilityScore) {
 		super(baselinePriority, volitilityScore);
 		
+		debugColor = new Color(255, 100, 100);
+		
 		raxBase = KaonBot.getStartPosition().getTilePosition();
 	}
 
@@ -386,6 +388,8 @@ public class RushManager extends AbstractManager {
 	
 	@Override
 	public void displayDebugGraphics(Game game){
+		super.displayDebugGraphics(game);
+
 		if(nextRax != null){
 			game.drawCircleMap(nextRax.toPosition(), frameCount, debugColor);
 		}
@@ -410,7 +414,7 @@ public class RushManager extends AbstractManager {
 //				toDraw += "\nisAttacking";
 //			}
 			//game.drawTextMap(r.getUnit().getPosition(), toDraw + "\n" + r.getUnit().getGroundWeaponCooldown());
-			KaonBot.getGame().drawLineMap(r.getUnit().getPosition(), r.targetPosition, new Color(255, 0, 0));
+			KaonBot.getGame().drawLineMap(r.getUnit().getPosition(), r.targetPosition, debugColor);
 			game.drawCircleMap(r.getUnit().getPosition(), r.getUnit().getGroundWeaponCooldown(), new Color(0, 0, 0));
 			if(r.getUnit().isStuck()) game.drawCircleMap(r.getUnit().getPosition(), 2, new Color(255, 0, 0), true);
 		}
@@ -484,13 +488,13 @@ public class RushManager extends AbstractManager {
 			
 			if(target != null && target.exists()){
 				targetPosition = target.getPosition();
-//				if(getUnit().getType().groundWeapon().maxRange() < getUnit().getDistance(targetPosition)){
+//				if(getType().groundWeapon().maxRange() < getUnit().getDistance(targetPosition)){
 //					KaonBot.print("IN RANGE: " + microCount);
 //					getUnit().attack(target);
 //					microCount = 0;
 //					return false;
 //				}
-			}else if((getUnit().getDistance(targetPosition) < getUnit().getType().sightRange()))
+			}else if((getUnit().getDistance(targetPosition) < getType().sightRange()))
 			{
 				//KaonBot.print(getUnit().getID() + " NOTHING HERE: " + target + ", " + targetPosition);
 				if(target != null){
@@ -500,7 +504,7 @@ public class RushManager extends AbstractManager {
 			}
 			
 			if(lastRusherDeath != null && waitingForRushers){
-				if(getUnit().getDistance(lastRusherDeath) < getUnit().getType().sightRange() * 3){
+				if(getUnit().getDistance(lastRusherDeath) < getType().sightRange() * 3){
 					if(rushersWaiting.add(getUnit())){
 						regroupPoint = getUnit().getPosition();
 					}

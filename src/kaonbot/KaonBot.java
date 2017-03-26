@@ -163,24 +163,27 @@ public class KaonBot extends DefaultBWListener {
 	        mainPosition = startPosition;
 	        econManager = new EconomyManager(1 - r.nextDouble() * 0.5, 0.1 + r.nextDouble());
 	        depotManager = new DepotManager(1 - r.nextDouble() * 0.5, 0.1 + r.nextDouble(), econManager, self);
-	        rushManager = new RushManager(r.nextDouble(), 0.1 + r.nextDouble());
-	        defenseManager = new DefenseManager(r.nextDouble(), 0.1 + r.nextDouble());
-	        //scoutManager = new ScoutManager(1.1, 0.1);
+	        rushManager = new RushManager(r.nextDouble(), r.nextDouble());
+	        defenseManager = new DefenseManager(r.nextDouble(), r.nextDouble());
+	        scoutManager = new ScoutManager(r.nextDouble(), r.nextDouble());
 	        
 	        game.sendTextEx(false, "ECON: " + econManager.usePriority() + "/" + econManager.getVolitility());
 	        game.sendTextEx(false, "DEPT: " + depotManager.usePriority() + "/" + depotManager.getVolitility());
 	        game.sendTextEx(false, "ATTK: " + rushManager.usePriority() + "/" + rushManager.getVolitility());
 	        game.sendTextEx(false, "DEFN: " + defenseManager.usePriority() + "/" + defenseManager.getVolitility());
+	        game.sendTextEx(false, "DEFN: " + scoutManager.usePriority() + "/" + scoutManager.getVolitility());
 
 	        KaonBot.print("ECON: " + econManager.usePriority() + "/" + econManager.getVolitility());
 	        KaonBot.print("DEPT: " + depotManager.usePriority() + "/" + depotManager.getVolitility());
 	        KaonBot.print("ATTK: " + rushManager.usePriority() + "/" + rushManager.getVolitility());
 	        KaonBot.print("DEFN: " + defenseManager.usePriority() + "/" + defenseManager.getVolitility());
+	        KaonBot.print("DEFN: " + scoutManager.usePriority() + "/" + scoutManager.getVolitility());
 
 	        managerList.add(econManager);
 	        managerList.add(depotManager);
 	        managerList.add(rushManager);
 	        managerList.add(defenseManager);
+	        managerList.add(scoutManager);
 	        
 	        for(Manager m: managerList){
 	        	m.init(game);
@@ -335,7 +338,7 @@ public class KaonBot extends DefaultBWListener {
         String out = pQueue.processQueue();
         game.drawTextScreen(10, 10, out);
 
-        //displayDebugGraphics();
+        displayDebugGraphics();
     }
     
     public void ggCheck(){

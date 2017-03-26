@@ -3,11 +3,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import bwapi.Unit;
+import bwapi.UnitType;
 
 public class Claim implements Comparable<Claim>{
 	private UnitCommander commander;
 	private double priority;
 	public final Unit unit;
+	public final UnitType unitType;
 	private List<Runnable> onCommandeer = new ArrayList<Runnable>();
 	private int claimFrame;
 	private static final int CLAIM_LOCK = 50;
@@ -18,6 +20,7 @@ public class Claim implements Comparable<Claim>{
 		commander = man;
 		priority = cl;
 		unit = u;
+		unitType = u.getType();
 		claimFrame = KaonBot.getGame().getFrameCount();
 		lastTouched = claimFrame;
 	}
