@@ -70,7 +70,7 @@ public class RushManager extends AbstractManager {
 
 	@Override
 	public String getName(){
-		return "ATTACK " + targetList.size() + "|" + rushers.size() + "|" 
+		return "ATTACK " + optimalTargetIndexes.size() + "/" + targetList.size() + "|" + rushers.size() + "|" 
 				+ !waitingForRushers + ":" + rushersWaiting.size() + "/" + waitForNRushers;
 	}
 	
@@ -250,6 +250,7 @@ public class RushManager extends AbstractManager {
 			waitForNRushers += rushers.size() / 2;
 			deadRushers = 0;
 			targetIndex = r.nextInt(1000000);
+			KaonBot.econManager.incrementPriority(KaonBot.econManager.getVolitility(), false);
 		}
 		
 	}
@@ -342,12 +343,13 @@ public class RushManager extends AbstractManager {
 			}
 		}
 		
+		optimalTargetIndexes.clear();
+
 		BaseLocation baseToTarget = KaonBot.scoutManager.getBestAttackLocation();
 		if(baseToTarget == null){
 			return;
 		}
 		Polygon targetPoly = baseToTarget.getRegion().getPolygon();
-		optimalTargetIndexes.clear();
 		int index = 0;
 		tIt = targetList.iterator();
 		pIt = targetPositions.iterator();

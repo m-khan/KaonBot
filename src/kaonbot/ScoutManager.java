@@ -301,6 +301,10 @@ public class ScoutManager extends AbstractManager {
 				for(int i = 0; i < points.size(); i++){
 					if(nearestPoint.equals(points.get(i))){
 						polygonIndex = i;
+						if(polygonIndex >= poly.getPoints().size()){
+							polygonIndex = 0;
+						}
+
 						break;
 					}
 				}
@@ -318,14 +322,14 @@ public class ScoutManager extends AbstractManager {
 			
 			if(foundBase){
 				// check bounds
-				if(polygonIndex >= poly.getPoints().size()){
-					polygonIndex = 0;
-				}
-				
+
 				if(getUnit().getPosition().getDistance(points.get(polygonIndex)) < POLY_DISTANCE || 
 						KaonBot.getGame().getFrameCount() - SINGLE_POLY_TIMEOUT > polyFrame){
 					polyFrame = KaonBot.getGame().getFrameCount();
 					polygonIndex++;
+					if(polygonIndex >= poly.getPoints().size()){
+						polygonIndex = 0;
+					}
 				}
 				
 				if(polygonIndex == fullLapIndex){
@@ -350,6 +354,7 @@ public class ScoutManager extends AbstractManager {
 				if(s.foundBase){
 					game.drawLineMap(s.getUnit().getPosition(), s.toScout.getRegion().getPolygon().getPoints().get(s.polygonIndex), debugColor);
 					game.drawCircleMap(s.getUnit().getPosition(), s.POLY_DISTANCE, debugColor);
+					game.drawTextMap(s.getUnit().getPosition(), s.polygonIndex + " - " + numBuildings.get(s.toScout) + " - " + lastChecked.get(s.toScout));
 				} else {
 					game.drawLineMap(s.getUnit().getPosition(), s.toScout.getPosition(), debugColor);
 				}
