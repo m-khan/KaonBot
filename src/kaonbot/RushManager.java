@@ -18,14 +18,15 @@ import bwapi.UnitType;
 import bwapi.UpgradeType;
 import bwta.BWTA;
 import bwta.BaseLocation;
+import bwta.Polygon;
 
 
 public class RushManager extends AbstractManager {
 
 	List<Unit> raxList = new ArrayList<Unit>();
 	Unit academy = null;
-	LinkedList<Unit> targetList = new LinkedList<Unit>();
-	LinkedList<Position> targetPositions = new LinkedList<Position>();
+	ArrayList<Unit> targetList = new ArrayList<Unit>(100);
+	ArrayList<Position> targetPositions = new ArrayList<Position>(100);
 	List<Rusher> rushers = new ArrayList<Rusher>();
 	private final double RAX_WEIGHT = 0.6;
 	private final int MARINE_PER_MEDIC = 5;
@@ -34,6 +35,7 @@ public class RushManager extends AbstractManager {
 	private final int MEDIC_CAP = 20;
 	private final double NEW_ARMY_UNIT = 0.1;
 	final double BUILDING_KILL_MULTIPLIER = 5.0;
+	final double NEW_TARGET_PRIORITY = .5;
 	final double SUPPLY_CAPPED = 2.0;
 	TilePosition nextRax = null;
 	TilePosition raxBase;
@@ -49,6 +51,7 @@ public class RushManager extends AbstractManager {
 	private int rushWaitCounter = 0;
 	private int deadRushers = 0;
 	private int targetIndex = 0;
+	private ArrayList<Integer> optimalTargetIndexes = new ArrayList<Integer>(100);
 	private Set<Unit> rushersWaiting = new HashSet<Unit>();
 	int frameCount = 0;
 	private boolean justStartLocations = true;
@@ -85,7 +88,7 @@ public class RushManager extends AbstractManager {
 				targetList.add(unit);
 				targetPositions.add(unit.getPosition());
 				KaonBot.print(type + " added to target list");
-				incrementPriority(getVolitility(), false);
+				incrementPriority(getVolitility() * NEW_TARGET_PRIORITY, false);
 			}
 		}else if(friendly && !type.isWorker() && !unit.getType().isBuilding()){
 			incrementPriority(getVolitility() * NEW_ARMY_UNIT, false);
@@ -338,6 +341,27 @@ public class RushManager extends AbstractManager {
 				incrementPriority(-1 * getVolitility(), false);
 			}
 		}
+		
+		BaseLocation baseToTarget = KaonBot.scoutManager.getBestAttackLocation();
+		if(baseToTarget == null){
+			return;
+		}
+		Polygon targetPoly = baseToTarget.getRegion().getPolygon();
+		optimalTargetIndexes.clear();
+		int index = 0;
+		tIt = targetList.iterator();
+		pIt = targetPositions.iterator();
+
+		while(tIt.hasNext() && pIt.hasNext()) {
+			tIt.next();
+			Position p = pIt.next();
+		
+			if(targetPoly.isInside(p)){
+				optimalTargetIndexes.add(index);
+			}
+
+			index++;
+		}
 	}
 	
 	@Override
@@ -368,7 +392,17 @@ public class RushManager extends AbstractManager {
 				if(c.unit.getType() == UnitType.Terran_Medic && healSpot != null){
 					rushers.add(new Rusher(c, null, healSpot));
 				} else {
-					rushers.add(new Rusher(c, targetList.get(targetIndex % targetList.size()), targetPositions.get(targetIndex % targetList.size())));
+					Unit uToAttack = null;
+					Position pToAttack = null;
+					if(optimalTargetIndexes.size() > 0){
+						uToAttack = targetList.get(optimalTargetIndexes.get(targetIndex % optimalTargetIndexes.size()));
+						pToAttack = targetPositions.get(optimalTargetIndexes.get(targetIndex % optimalTargetIndexes.size()));
+					} else {
+						uToAttack = targetList.get(targetIndex % targetList.size());
+						pToAttack = targetPositions.get(targetIndex % targetList.size());
+					}
+					
+					rushers.add(new Rusher(c, uToAttack, pToAttack));
 				}
 			}
 		}
