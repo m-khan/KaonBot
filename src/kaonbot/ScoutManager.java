@@ -261,7 +261,7 @@ public class ScoutManager extends AbstractManager {
 		boolean foundBase = false;
 		final boolean isStartScout;
 		final int POLY_DISTANCE;
-		final int SINGLE_POLY_TIMEOUT = 1000;
+		final int SINGLE_POLY_TIMEOUT = 200;
 		int polyFrame = 0;
 		
 		
@@ -304,7 +304,6 @@ public class ScoutManager extends AbstractManager {
 						if(polygonIndex >= poly.getPoints().size()){
 							polygonIndex = 0;
 						}
-
 						break;
 					}
 				}
@@ -339,7 +338,11 @@ public class ScoutManager extends AbstractManager {
 					}
 				}
 				touchClaim();
-				getUnit().move(poly.getPoints().get(polygonIndex));
+				
+				Position moveTo = poly.getPoints().get(polygonIndex);
+				moveTo = KaonUtils.translatePositionSetDistance(moveTo, toScout.getPosition(), POLY_DISTANCE / 2);
+				//KaonBot.getGame().drawCircleMap(moveTo, 5, debugColor);
+				getUnit().move(moveTo);
 			}
 			return false;
 		}

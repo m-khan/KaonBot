@@ -15,6 +15,18 @@ public class KaonUtils {
 
 	private static Random r = new Random();
 	
+	public static Position translatePositionSetDistance(Position origin, Position target, int distance){
+		double dx = origin.getX()-target.getX();
+		double dy = origin.getY()-target.getY();
+		double totalDistance = Math.sqrt(dx*dx+dy*dy);
+		double distanceRatio = distance / totalDistance;
+		
+		int finalX = (int) (((1 - distanceRatio) * origin.getX() + distanceRatio * target.getX()));
+		int finalY = (int) (((1 - distanceRatio) * origin.getY() + distanceRatio * target.getY()));
+		
+		return new Position(finalX, finalY);
+	}
+	
 	public static Position getRandomPositionNear(Position p, int range){
 		if(range == 0) return p;
 		int addX = r.nextInt(range * 2) - range;
