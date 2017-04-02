@@ -50,6 +50,9 @@ public class DefenseManager extends AbstractManager {
 	private int targetIndex;
 	private int emergencyDefenderCount = 0;
 	final int EMERGENCY_DEFENDER_MAX_SUPPLY = 50;
+	final int EMERGENCY_DEFENDER_CLAIM_HP   = 50;
+	final int EMERGENCY_DEFENDER_MIN_HEALTH = 30;
+	final int EMERGENCY_DEFENDER_BASE_RANGE = 1000;
 	private List<Unit> newExpansions = new ArrayList<Unit>();
 	
 	public DefenseManager(double baselinePriority, double volitilityScore) {
@@ -345,7 +348,7 @@ public class DefenseManager extends AbstractManager {
 			UnitType type = unit.getType();
 			if(!type.isWorker() && !type.isBuilding()) {
 				toReturn.add(usePriority());
-			}else if(type.isWorker() && needEmergencyDefenders(workerClaims)) {
+			}else if(type.isWorker() && needEmergencyDefenders(workerClaims) && unit.getHitPoints() >= EMERGENCY_DEFENDER_CLAIM_HP) {
 				workerClaims++;
 				toReturn.add(usePriority() * 10);
 			}else {
@@ -608,9 +611,20 @@ public class DefenseManager extends AbstractManager {
 				return false;
 			}
 			
-			if(needEmergencyDefenders()){
-				//make sure we hold onto emergency claims until they're not needed
-				touchClaim();
+			if (getType().isWorker()) {
+				if(!needEmergencyDefenders() || getUnit().getHitPoints() < EMERGENCY_DEFENDER_MIN_HEALTH){
+					return true;
+				} else {
+					boolean isCloseToBase = false;
+					for(BaseLocation b: KaonBot.econManager.getBases()){
+						if(b.getDistance(getUnit().getPosition()) < EMERGENCY_DEFENDER_BASE_RANGE){
+							isCloseToBase = true;
+						}
+					}
+					if(!isCloseToBase){
+						return true;
+					}
+				}
 			}
 			
 			if(!claimList.containsKey(getUnit().getID())){

@@ -31,10 +31,9 @@ public class ScoutManager extends AbstractManager {
 	public ScoutManager(double baselinePriority, double volatility) {
 		super(baselinePriority, volatility);
 		
-		SCOUT_RATIO =  0.15;//baselinePriority * SCOUT_RATIO_MULTIPLIER;
+		SCOUT_RATIO =  baselinePriority * SCOUT_RATIO_MULTIPLIER;
 		
 		debugColor = new Color(100, 255, 100);
-	
 	}
 	
 	@Override
