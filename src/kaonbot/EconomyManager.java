@@ -165,6 +165,7 @@ public class EconomyManager extends AbstractManager{
 				double distance = b.location.getDistance(unit.getPosition());
 				if(distance < 300){
 					b.gas = unit;
+					gasPriority = 0;
 				}
 			}
 		}
