@@ -360,16 +360,43 @@ public class EconomyManager extends AbstractManager{
 			mins.add(unit);
 		}
 		
+		protected boolean isPatchSaturated(Unit patch, int saturation){
+			int totalMiners = 0;
+			for(Miner m: miners){
+				if(m.resource == patch){
+					totalMiners++;
+					if(totalMiners >= saturation){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		
 		protected boolean addMiner(Claim unit){
 			if(mins.size() == 0 && extractor == null){
 				return false;
 			}
 			if(extractor != null && extractor.exists() && gasers.size() < 3){
-				gasers.add(new Miner(unit, extractor));
+				gasers.add(new Miner(unit, extractor, false));
 				return true;
 			} else if(mins.size() > 0){
-				miners.add(new Miner(unit, mins.get((miners.size() + 1) % mins.size()))); //TODO implement mineral lock
-				return true;
+				
+				int patch = 0;
+				int saturation = (miners.size()) / mins.size() + 1; 
+				
+				while(patch < mins.size() && isPatchSaturated(mins.get(patch), saturation)){
+					patch++;
+				}
+
+				if(patch >= mins.size()){
+					patch = 0;
+					miners.add(new Miner(unit, mins.get(patch), false));
+					return true;
+				} else {
+					miners.add(new Miner(unit, mins.get(patch), true));
+					return true;
+				}
 			}
 			
 			return false;
@@ -384,7 +411,7 @@ public class EconomyManager extends AbstractManager{
 				gas = 3;
 			}
 			
-			return gas + mins.size() * 2 + mins.size() / 2 - miners.size();
+			return gas + mins.size() * 2 - miners.size();//mins.size() * 2 + mins.size() / 2 - miners.size();
 		}
 		
 		protected List<Unit> update(){
@@ -480,14 +507,15 @@ public class EconomyManager extends AbstractManager{
 
 		private Unit resource;
 		private UnitType resourceType;
-		private boolean returning = false;
-		private final int MICRO_LOCK = 10; //num frames to skip between micro actions
+		private final int MICRO_LOCK = 0; //num frames to skip between micro actions
 		private int microCount = 0; 
+		private boolean lock;
 		
-		public Miner(Claim miner, Unit resource){
+		public Miner(Claim miner, Unit resource, boolean lock){
 			super(miner);
 			this.resource = resource;
 			this.resourceType = resource.getType();
+			this.lock = lock;
 			getUnit().gather(resource);
 }
 		
@@ -497,23 +525,29 @@ public class EconomyManager extends AbstractManager{
 		
 		@Override
 		public boolean update() {
-			if(microCount < MICRO_LOCK)
-			{
-				microCount++;
-				return false;
-			}
+//			if(microCount < MICRO_LOCK)
+//			{
+//				microCount++;
+//				return false;
+//			}
 			
 			if(KaonBot.defenseManager.needEmergencyDefenders()){
 				return true;
 			}
 			
 			Order order = getUnit().getOrder();
+			
 			if(order == Order.MiningMinerals || order == Order.HarvestGas || order == Order.MoveToGas
 					|| getUnit().isCarryingMinerals() || getUnit().isCarryingGas()
 					|| order == Order.WaitForMinerals || order == Order.WaitForGas)
 			{
 				touchClaim();
 				microCount++;
+				return false;
+			} else if(lock && getUnit().getTarget() != resource){
+				touchClaim();
+				getUnit().gather(resource);
+				microCount = 0;
 				return false;
 			}
 
@@ -528,10 +562,10 @@ public class EconomyManager extends AbstractManager{
 		super.displayDebugGraphics(game);
 		for(Base b: bases){
 			if(b.cc != null){
-//				game.drawTextMap(b.cc.getPosition(), "Patches: " + b.mins.size() + 
-//													 "\nWorkers: " + b.miners.size() + 
-//													 "\nonGas: " + b.gasers.size() +
-//													 "\nNeed: " + b.requiredMiners());
+				game.drawTextMap(b.cc.getPosition(), "Patches: " + b.mins.size() + 
+													 "\nWorkers: " + b.miners.size() + 
+													 "\nonGas: " + b.gasers.size() +
+													 "\nNeed: " + b.requiredMiners());
 				
 				for(Miner m: b.miners){
 					game.drawLineMap(m.resource.getPosition(), m.getUnit().getPosition(), debugColor);

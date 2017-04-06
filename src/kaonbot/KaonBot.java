@@ -338,7 +338,7 @@ public class KaonBot extends DefaultBWListener {
         String out = pQueue.processQueue();
         game.drawTextScreen(10, 10, out);
 
-        //displayDebugGraphics();
+        displayDebugGraphics();
     }
     
     public void ggCheck(){
