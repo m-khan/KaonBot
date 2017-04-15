@@ -13,7 +13,10 @@ public class ProductionQueue extends PriorityQueue<ProductionOrder> {
 	private static final long serialVersionUID = 2962631698946196631L;
 	private Player player;
 	private static ArrayList<BuildingOrder> activeOrders = new ArrayList<BuildingOrder>();
-	private int OUTPUT_LIMIT = 20;
+	private final int OUTPUT_LIMIT = 20;
+	private final int BUILDING_SKIP_FRAMES = 20;
+	private int skipFrames = 0;
+	
 	
 	public ProductionQueue(Player player){
 		this.player = player;
@@ -59,6 +62,10 @@ public class ProductionQueue extends PriorityQueue<ProductionOrder> {
 		
 		List<ProductionOrder> processed = new LinkedList<ProductionOrder>();
 		
+		if(skipFrames > 0){
+			skipFrames--;
+		}
+		
 		while(	peek() != null && 
 				peek().getMinerals() <= (min - minRes) && 
 				peek().getGas() <= (gas - gasRes)){
@@ -95,8 +102,14 @@ public class ProductionQueue extends PriorityQueue<ProductionOrder> {
 			}
 			else if(toExecute.getType() == ProductionOrder.BUILDING && toExecute.canExecute()){
 				// Building can be executed
-				toExecute.execute();
-				activeOrders.add((BuildingOrder) toExecute);
+				
+				if(skipFrames <= 0){
+					toExecute.execute();
+					activeOrders.add((BuildingOrder) toExecute);
+					skipFrames = BUILDING_SKIP_FRAMES;
+				} else {
+					output.append(skipFrames + " ");
+				}
 				
 				// If the building hasn't started, we still need to reserve minerals
 				if(!toExecute.isSpent()){
@@ -104,6 +117,8 @@ public class ProductionQueue extends PriorityQueue<ProductionOrder> {
 					gasRes += toExecute.getGas();
 				}
 				if(outputLines++ < OUTPUT_LIMIT) output.append("!" + toExecute + " - " + minRes  + "\n");
+				break;
+				
 			} else {
 				// The order is already in progress we need to wait
 				if(!toExecute.isSpent()){

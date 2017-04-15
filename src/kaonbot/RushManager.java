@@ -29,7 +29,7 @@ public class RushManager extends AbstractManager {
 	ArrayList<Position> targetPositions = new ArrayList<Position>(100);
 	List<Rusher> rushers = new ArrayList<Rusher>();
 	private final double RAX_WEIGHT = 0.6;
-	private final int MARINE_PER_MEDIC = 5;
+	private final int MARINE_PER_MEDIC = 4;
 	private int medicCounter = 0;
 	private int medicTotal = 0;
 	private final int MEDIC_CAP = 20;
@@ -444,7 +444,7 @@ public class RushManager extends AbstractManager {
 		public Rusher(Claim c, Unit target, Position targetPosition) {
 			super(c);
 			this.target = target;
-			this.targetPosition = targetPosition;
+			this.targetPosition = KaonUtils.getRandomPositionNear(targetPosition, 5);
 			microCount = 0;
 		}
 

@@ -83,8 +83,7 @@ public class DefenseManager extends AbstractManager {
 					incrementPriority(getVolitility() * ENEMY_BASE, false);
 				}
 			}
-		}
-		else if(friendly){
+		} else if(friendly){
 			if(unit.getType().isResourceDepot() && !unit.isCompleted()){
 				newExpansions.add(unit);
 				updateDefensePoints();
@@ -92,6 +91,7 @@ public class DefenseManager extends AbstractManager {
 			}
 		}
 	}
+
 	private void updateDefensePoints(){
 		defensePoints.clear();
 		

@@ -19,13 +19,14 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 	private TilePosition position;
 	private BuildManager buildManager = null;
 	private boolean ignoreReservations;
+	private static final int RESOURCE_FUDGE_FACTOR = 0;
 	
 	public BuildingOrder(int minerals, int gas, double priority, UnitType toProduce, TilePosition position) {
 		this(minerals, gas, priority, toProduce, position, false);
 	}
 
 	public BuildingOrder(int minerals, int gas, double priority, UnitType toProduce, TilePosition position, boolean ignoreReservations) {
-		super(ProductionOrder.BUILDING, minerals, gas, priority);
+		super(ProductionOrder.BUILDING, minerals + RESOURCE_FUDGE_FACTOR, gas + RESOURCE_FUDGE_FACTOR, priority);
 		this.ignoreReservations = ignoreReservations;
 		this.toProduce = toProduce;
 		this.position = position;
@@ -78,6 +79,9 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 
 	@Override
 	public String getSignature(){
+		if(position == null){
+			return toProduce.toString();
+		}
 		return toProduce + "" + position.toPosition();
 	}
 	

@@ -30,6 +30,9 @@ public class EconomyManager extends AbstractManager{
 	private int NUM_BASES_TO_QUEUE = 3;
 	private boolean needNewBase = false;
 	private double gasPriority = 0;
+	private final int GAS_CAP = 1000;
+	private final int GAS_MIN = 200;
+	private final int GAS_CHANCE = 100;
 	
 	
 	private Set<Unit> allWorkers = new HashSet<Unit>();
@@ -377,7 +380,7 @@ public class EconomyManager extends AbstractManager{
 			if(mins.size() == 0 && extractor == null){
 				return false;
 			}
-			if(extractor != null && extractor.exists() && gasers.size() < 3){
+			if(extractor != null && KaonBot.getGas() < GAS_CAP && extractor.exists() && gasers.size() < 3){
 				gasers.add(new Miner(unit, extractor, false));
 				return true;
 			} else if(mins.size() > 0){
@@ -506,21 +509,21 @@ public class EconomyManager extends AbstractManager{
 	protected class Miner extends Behavior{
 
 		private Unit resource;
-		private UnitType resourceType;
-		private final int MICRO_LOCK = 0; //num frames to skip between micro actions
-		private int microCount = 0; 
+		private boolean isMineral;
+//		private final int MICRO_LOCK = 0; //num frames to skip between micro actions
+//		private int microCount = 0; 
 		private boolean lock;
 		
 		public Miner(Claim miner, Unit resource, boolean lock){
 			super(miner);
 			this.resource = resource;
-			this.resourceType = resource.getType();
+			this.isMineral = resource.getType().isMineralField();
 			this.lock = lock;
 			getUnit().gather(resource);
 }
 		
-		public UnitType getResourceType(){
-			return resourceType;
+		public boolean isMineral(){
+			return isMineral;
 		}
 		
 		@Override
@@ -535,6 +538,12 @@ public class EconomyManager extends AbstractManager{
 				return true;
 			}
 			
+			if(KaonBot.getGas() > GAS_CAP && !isMineral){
+				return true;
+			} else if(gasPriority > usePriority() && KaonBot.getGas() < GAS_MIN && KaonUtils.getRandom().nextInt(GAS_CHANCE * claimList.size()) == 1){
+				return true;
+			}
+			
 			Order order = getUnit().getOrder();
 			
 			if(order == Order.MiningMinerals || order == Order.HarvestGas || order == Order.MoveToGas
@@ -542,16 +551,15 @@ public class EconomyManager extends AbstractManager{
 					|| order == Order.WaitForMinerals || order == Order.WaitForGas)
 			{
 				touchClaim();
-				microCount++;
+//				microCount++;
 				return false;
 			} else if(lock && getUnit().getTarget() != resource){
 				touchClaim();
 				getUnit().gather(resource);
-				microCount = 0;
+//				microCount = 0;
 				return false;
 			}
-
-			microCount = 0;
+//			microCount = 0;
 			
 			return resource.getResources() < 20 || !getUnit().exists();
 		}
