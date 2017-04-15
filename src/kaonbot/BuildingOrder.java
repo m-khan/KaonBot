@@ -29,6 +29,17 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 		this.ignoreReservations = ignoreReservations;
 		this.toProduce = toProduce;
 		this.position = position;
+		
+		if(this.position == null){
+			Unit builder = BuildingPlacer.getInstance().getSuitableBuilder(KaonBot.getStartPosition().getTilePosition(), this.getPriority() * KaonBot.SCV_COMMANDEER_BUILDING_MULTIPLIER, null);
+			if(builder != null){
+				try{
+					this.position = BuildingPlacer.getInstance().getBuildTile(builder, UnitType.Terran_Supply_Depot, KaonBot.mainPosition.getTilePosition());
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	public TilePosition getPosition(){
@@ -49,7 +60,14 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 	@Override
 	public String toString(){
 		DecimalFormat df = new DecimalFormat("#.##");
-		String toReturn =  toProduce + " @ " + position.toPosition() + " " + df.format(getPriority());
+		String pos;
+		if(position == null){
+			pos = "N/A";
+		} else {
+			pos = position.toPosition().toString();
+		}
+		
+		String toReturn =  toProduce + " @ " + pos + " " + df.format(getPriority());
 		if(buildManager != null){
 			toReturn += "\nBuilder: " + buildManager.getAllClaims().get(0).unit.getPosition();
 			toReturn += " Spent:" + this.isSpent();
@@ -105,6 +123,10 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 	}
 	
 	public boolean canExecute(){
+		if(position == null){
+			return false;
+		}
+		
 		if(!ignoreReservations && !BuildingPlacer.getInstance().canBuildHere(position, toProduce)){
 			return false;
 		}

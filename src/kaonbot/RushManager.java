@@ -37,8 +37,6 @@ public class RushManager extends AbstractManager {
 	final double BUILDING_KILL_MULTIPLIER = 5.0;
 	final double NEW_TARGET_PRIORITY = .5;
 	final double SUPPLY_CAPPED = 2.0;
-	TilePosition nextRax = null;
-	TilePosition raxBase;
 	private Position lastRusherDeath = null;
 	private Position regroupPoint = null;
 	private Position healSpot = null;
@@ -64,8 +62,6 @@ public class RushManager extends AbstractManager {
 		super(baselinePriority, volitilityScore);
 		
 		debugColor = new Color(255, 100, 100);
-		
-		raxBase = KaonBot.getStartPosition().getTilePosition();
 	}
 
 	@Override
@@ -222,7 +218,6 @@ public class RushManager extends AbstractManager {
 		}
 		
 		checkRushStrategy();
-		updateNextRax();
 		frameCount = 0;
 	}
 
@@ -253,15 +248,6 @@ public class RushManager extends AbstractManager {
 			KaonBot.econManager.incrementPriority(KaonBot.econManager.getVolitility(), false);
 		}
 		
-	}
-	
-	private void updateNextRax(){
-		Unit builder = BuildingPlacer.getInstance().getSuitableBuilder(KaonBot.getStartPosition().getTilePosition(), 
-				getRaxPriority(), this);
-		if(builder != null){
-			nextRax = BuildingPlacer.getInstance().getBuildTile(builder, UnitType.Terran_Barracks, KaonBot.mainPosition.getTilePosition());
-		}
-
 	}
 	
 	private double getRaxPriority(){
@@ -304,10 +290,6 @@ public class RushManager extends AbstractManager {
 		}
 
 		// return now if we don't have a barracks location
-		if(nextRax == null){
-			return prodList;
-		}
-
 		if(academy == null && raxList.size() >= MARINE_PER_MEDIC / 2){
 			boolean queueAcademy = true;
 			for(BuildingOrder o: ProductionQueue.getActiveOrders()){
@@ -316,11 +298,11 @@ public class RushManager extends AbstractManager {
 				}
 			}
 			if(queueAcademy){
-				prodList.add(new BuildingOrder(150, 0, this.usePriority(), UnitType.Terran_Academy, nextRax));
+				prodList.add(new BuildingOrder(150, 0, this.usePriority(), UnitType.Terran_Academy, null));
 			}
 		} else {
 			double raxPriority = getRaxPriority();
-			prodList.add(new BuildingOrder(150, 0, raxPriority, UnitType.Terran_Barracks, nextRax));
+			prodList.add(new BuildingOrder(150, 0, raxPriority, UnitType.Terran_Barracks, null));
 		}
 		return prodList;
 	}
@@ -426,10 +408,6 @@ public class RushManager extends AbstractManager {
 	public void displayDebugGraphics(Game game){
 		super.displayDebugGraphics(game);
 
-		if(nextRax != null){
-			game.drawCircleMap(nextRax.toPosition(), frameCount, debugColor);
-		}
-		
 		for(Rusher r: rushers){
 //			String toDraw = /*toString() + "\n" +*/ r.getUnit().getOrder().toString();
 //			if(r.getUnit().getTarget() != null){

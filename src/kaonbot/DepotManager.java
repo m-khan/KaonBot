@@ -16,7 +16,6 @@ public class DepotManager extends AbstractManager {
 
 	EconomyManager econ;
 	Player player;
-	TilePosition nextDepot = null;
 	TilePosition depotBase;
 	Map<Integer, Unit> depotList = new HashMap<Integer, Unit>();
 	int frameCount = 0;
@@ -86,7 +85,6 @@ public class DepotManager extends AbstractManager {
 			incrementPriority(getVolitility(), false);
 		}
 		
-		findNextDepotSpot();
 		frameCount = FRAME_LOCK;
 	}
 
@@ -107,26 +105,12 @@ public class DepotManager extends AbstractManager {
 		return this.usePriority(multiplier);
 	}
 	
-	private void findNextDepotSpot(){
-		Unit builder = BuildingPlacer.getInstance().getSuitableBuilder(player.getStartLocation(), getDepotPriority(), this);
-		if(builder != null){
-			try{
-				nextDepot = BuildingPlacer.getInstance().getBuildTile(builder, UnitType.Terran_Supply_Depot, KaonBot.mainPosition.getTilePosition());
-			}catch(Exception e){
-				e.printStackTrace();
-			}
-		}
-	}
-		
 	@Override
 	public List<ProductionOrder> getProductionRequests() {
 		List<ProductionOrder> toReturn = new ArrayList<ProductionOrder>();
 		double depotPriority = getDepotPriority();
 		int depotsToQueue = NUM_DEPOTS_TO_QUEUE;
 		
-		if(nextDepot == null){
-			return toReturn;
-		}
 		for(BuildingOrder o: ProductionQueue.getActiveOrders()){
 			if(o.getUnitType() == UnitType.Terran_Supply_Depot){
 				depotsToQueue -= 1;
@@ -136,7 +120,7 @@ public class DepotManager extends AbstractManager {
 		
 		if(depotsToQueue > 0){
 			toReturn.add(new BuildingOrder(100, 0, depotPriority, 
-					UnitType.Terran_Supply_Depot, nextDepot));
+					UnitType.Terran_Supply_Depot, null));
 		}
 
 		return toReturn;
@@ -152,9 +136,6 @@ public class DepotManager extends AbstractManager {
 
 	@Override
 	public void displayDebugGraphics(Game game){
-		if(nextDepot != null){
-			game.drawCircleMap(nextDepot.toPosition(), frameCount, debugColor);
-		}
 	}
 
 	@Override

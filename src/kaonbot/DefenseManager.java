@@ -30,8 +30,6 @@ public class DefenseManager extends AbstractManager {
 	List<Fort> forts = new ArrayList<Fort>();
 	private final double RAX_WEIGHT = 0.6;
 	private final double BUNKER_WEIGHT = 0.4;
-	TilePosition nextRax = null;
-	TilePosition raxBase;
 	int frameCount = 0;
 	final int FRAME_LOCK = 51;
 	final int DEFENSE_RADIUS = 400;
@@ -59,8 +57,6 @@ public class DefenseManager extends AbstractManager {
 		super(baselinePriority, volitilityScore);
 		
 		debugColor = new Color(100, 100, 255);
-		
-		raxBase = KaonBot.getStartPosition().getTilePosition();
 	}
 	
 	@Override
@@ -390,19 +386,9 @@ public class DefenseManager extends AbstractManager {
 		targetIndex = r.nextInt(100000);
 		
 		updateTargetList();
-		updateNextRax();
 		frameCount = 0;
 	}
 
-	private void updateNextRax(){
-		Unit builder = BuildingPlacer.getInstance().getSuitableBuilder(KaonBot.getStartPosition().getTilePosition(), 
-				getRaxPriority(), this);
-		if(builder != null){
-			nextRax = BuildingPlacer.getInstance().getBuildTile(builder, UnitType.Terran_Barracks, KaonBot.mainPosition.getTilePosition());
-		}
-
-	}
-	
 	private double getRaxPriority(){
 		int raxCount = raxList.size() + 1;
 		
@@ -432,13 +418,8 @@ public class DefenseManager extends AbstractManager {
 			prodList.add(f.getBunkerOrder());
 		}
 		
-		// return now if we don't have a barracks location
-		if(nextRax == null){
-			return prodList;
-		}
-
 		double raxPriority = getRaxPriority();
-		prodList.add(new BuildingOrder(150, 0, raxPriority, UnitType.Terran_Barracks, nextRax));
+		prodList.add(new BuildingOrder(150, 0, raxPriority, UnitType.Terran_Barracks, null));
 		
 		return prodList;
 	}
@@ -564,10 +545,6 @@ public class DefenseManager extends AbstractManager {
 	@Override
 	public void displayDebugGraphics(Game game){
 		super.displayDebugGraphics(game);
-		if(nextRax != null){
-			game.drawCircleMap(nextRax.toPosition(), frameCount, debugColor);
-		}
-		
 		for(Position p: defensePoints){
 			KaonBot.getGame().drawCircleMap(p, 150, new Color(0, 0, 255), false);
 		}
