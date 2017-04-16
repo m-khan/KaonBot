@@ -30,7 +30,7 @@ public class EconomyManager extends AbstractManager{
 	private int NUM_BASES_TO_QUEUE = 3;
 	private boolean needNewBase = false;
 	private double gasPriority = 0;
-	private final int GAS_CAP = 2000;
+	private final int GAS_CAP = 500;
 	private final int GAS_MIN = 200;
 	private final int GAS_CHANCE = 100;
 	

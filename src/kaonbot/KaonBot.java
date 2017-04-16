@@ -48,8 +48,10 @@ public class KaonBot extends DefaultBWListener {
     public static RushManager rushManager;
     public static DefenseManager defenseManager;
     public static ScoutManager scoutManager;
+    public static BioUpgradeManager bioUpgradeManager;
     
     private final int STALE_CLAIM = 100;
+    private final int GARBAGE_COLLECT_RATE = 100;
 
     public static Game getGame(){
     	// TODO find a better solution
@@ -166,24 +168,28 @@ public class KaonBot extends DefaultBWListener {
 	        rushManager = new RushManager(r.nextDouble(), r.nextDouble());
 	        defenseManager = new DefenseManager(r.nextDouble(), r.nextDouble());
 	        scoutManager = new ScoutManager(r.nextDouble(), r.nextDouble());
+	        bioUpgradeManager = new BioUpgradeManager(r.nextDouble() * 0.5, r.nextDouble());
 	        
 	        game.sendTextEx(false, "ECON: " + econManager.usePriority() + "/" + econManager.getVolitility());
 	        game.sendTextEx(false, "DEPT: " + depotManager.usePriority() + "/" + depotManager.getVolitility());
 	        game.sendTextEx(false, "ATTK: " + rushManager.usePriority() + "/" + rushManager.getVolitility());
 	        game.sendTextEx(false, "DEFN: " + defenseManager.usePriority() + "/" + defenseManager.getVolitility());
 	        game.sendTextEx(false, "DEFN: " + scoutManager.usePriority() + "/" + scoutManager.getVolitility());
+	        game.sendTextEx(false, "DEFN: " + bioUpgradeManager.usePriority() + "/" + bioUpgradeManager.getVolitility());
 
 	        KaonBot.print("ECON: " + econManager.usePriority() + "/" + econManager.getVolitility());
 	        KaonBot.print("DEPT: " + depotManager.usePriority() + "/" + depotManager.getVolitility());
 	        KaonBot.print("ATTK: " + rushManager.usePriority() + "/" + rushManager.getVolitility());
 	        KaonBot.print("DEFN: " + defenseManager.usePriority() + "/" + defenseManager.getVolitility());
 	        KaonBot.print("DEFN: " + scoutManager.usePriority() + "/" + scoutManager.getVolitility());
+	        KaonBot.print("DEFN: " + bioUpgradeManager.usePriority() + "/" + bioUpgradeManager.getVolitility());
 
 	        managerList.add(econManager);
 	        managerList.add(depotManager);
 	        managerList.add(rushManager);
 	        managerList.add(defenseManager);
 	        managerList.add(scoutManager);
+	        managerList.add(bioUpgradeManager);
 	        
 	        for(Manager m: managerList){
 	        	m.init(game);
@@ -302,6 +308,12 @@ public class KaonBot extends DefaultBWListener {
 //    	KaonBot.print("FRAME: " + game.getFrameCount());
     	
     	ggCheck();
+    	
+    	if(game.getFrameCount() % GARBAGE_COLLECT_RATE == 0){
+    		for(Manager m: managerList){
+    			m.garbageCollect();
+    		}
+    	}
     	
     	StringBuilder output = new StringBuilder("===MANAGERS===\n");
     	for (Manager manager : managerList){

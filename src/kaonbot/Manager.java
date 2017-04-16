@@ -15,4 +15,5 @@ public interface Manager extends UnitCommander{
 	public double incrementPriority(double priorityChange, boolean log);
 	public void runFrame();
 	public List<ProductionOrder> getProductionRequests();
+	public void garbageCollect();
 }

@@ -112,7 +112,7 @@ public class DepotManager extends AbstractManager {
 		int depotsToQueue = NUM_DEPOTS_TO_QUEUE;
 		int activeDepotOrders = ProductionQueue.numActiveOrders(UnitType.Terran_Supply_Depot);
 		depotsToQueue -= activeDepotOrders;
-		depotPriority = depotPriority / (2 * activeDepotOrders);
+		depotPriority = depotPriority / (2 * (activeDepotOrders + 1));
 		
 		if(depotsToQueue > 0){
 			toReturn.add(new BuildingOrder(100, 0, depotPriority, 

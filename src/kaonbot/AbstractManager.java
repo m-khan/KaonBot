@@ -128,7 +128,17 @@ public abstract class AbstractManager implements Manager{
 			c.free();
 		}
 	}
-
+	
+	@Override
+	public void garbageCollect(){
+		List<Claim> claims = getAllClaims();
+		for(Claim c: claims){
+			if(!c.unit.exists()){
+				removeClaim(c);
+			}
+		}
+	}
+	
 	@Override
 	public void displayDebugGraphics(Game game){
 		for(Claim c: getAllClaims()){
