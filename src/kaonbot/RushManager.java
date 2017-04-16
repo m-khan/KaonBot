@@ -252,13 +252,7 @@ public class RushManager extends AbstractManager {
 	
 	private double getRaxPriority(){
 		int raxCount = raxList.size() + 1;
-		
-		for(BuildingOrder b: ProductionQueue.getActiveOrders()){
-			if(b.getUnitType() == UnitType.Terran_Barracks){
-				raxCount++;
-			}
-		}
-		
+		raxCount += ProductionQueue.numActiveOrders(UnitType.Terran_Barracks);
 		return (this.usePriority() * RAX_WEIGHT) / (raxCount);
 	}
 	
@@ -267,15 +261,6 @@ public class RushManager extends AbstractManager {
 		List<ProductionOrder> prodList = new LinkedList<ProductionOrder>();
 		
 		int mCounter = medicCounter;
-		if(academy != null){
-			if(!academy.exists()){
-				academy = null;
-			} else if(!canStim && KaonBot.getGas() > 100){
-				prodList.add(new ResearchOrder(100, 100, this.usePriority() + 0.001, academy, TechType.Stim_Packs));
-			} else if(academy.canUpgrade(UpgradeType.U_238_Shells)){
-				prodList.add(new UpgradeOrder(150, 100, this.usePriority() + 0.001, academy, UpgradeType.U_238_Shells));
-			}
-		}
 		
 		for(Unit rax: raxList){
 			if(academy != null && mCounter > MARINE_PER_MEDIC && KaonBot.getGas() >= 50 && medicTotal < MEDIC_CAP){
@@ -291,13 +276,7 @@ public class RushManager extends AbstractManager {
 
 		// return now if we don't have a barracks location
 		if(academy == null && raxList.size() >= MARINE_PER_MEDIC / 2){
-			boolean queueAcademy = true;
-			for(BuildingOrder o: ProductionQueue.getActiveOrders()){
-				if(o.getUnitType() == UnitType.Terran_Academy){
-					queueAcademy = false;
-				}
-			}
-			if(queueAcademy){
+			if(ProductionQueue.numActiveOrders(UnitType.Terran_Academy) == 0){
 				prodList.add(new BuildingOrder(150, 0, this.usePriority(), UnitType.Terran_Academy, null));
 			}
 		} else {

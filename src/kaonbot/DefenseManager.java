@@ -221,10 +221,8 @@ public class DefenseManager extends AbstractManager {
 			
 			BuildingOrder toReturn = new BuildingOrder(100, 0, usePriority() * priority * BUNKER_WEIGHT / (bunkers.size() + 1), 
 													   UnitType.Terran_Bunker, nextBunker, true);
-			for(BuildingOrder o : ProductionQueue.getActiveOrders()){
-				if(o.getSignature().equals(toReturn)){
-					return ProductionOrder.getNullOrder();
-				}
+			if(ProductionQueue.isInActiveOrders(toReturn.getSignature())){
+				return ProductionOrder.getNullOrder();
 			}
 			return toReturn;
 		}
@@ -391,13 +389,7 @@ public class DefenseManager extends AbstractManager {
 
 	private double getRaxPriority(){
 		int raxCount = raxList.size() + 1;
-		
-		for(BuildingOrder b: ProductionQueue.getActiveOrders()){
-			if(b.getUnitType() == UnitType.Terran_Barracks){
-				raxCount++;
-			}
-		}
-		
+		raxCount += ProductionQueue.numActiveOrders(UnitType.Terran_Barracks);
 		return (this.usePriority() * RAX_WEIGHT) / (raxCount);
 	}
 	

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 import bwapi.Player;
+import bwapi.UnitType;
 
 
 public class ProductionQueue extends PriorityQueue<ProductionOrder> {
@@ -22,8 +23,27 @@ public class ProductionQueue extends PriorityQueue<ProductionOrder> {
 		this.player = player;
 	}
 	
-	public static List<BuildingOrder> getActiveOrders(){
+	private static List<BuildingOrder> getActiveOrders(){
 		return activeOrders;
+	}
+	
+	public static boolean isInActiveOrders(String signature){
+		for(BuildingOrder o : ProductionQueue.getActiveOrders()){
+			if(o.getSignature().equals(signature)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static int numActiveOrders(UnitType type){
+		int count = 0;
+		for(BuildingOrder o: ProductionQueue.getActiveOrders()){
+			if(type == null || o.getUnitType() == type){
+				count++;
+			}
+		}
+		return count;
 	}
 	
 	public String processQueue(){

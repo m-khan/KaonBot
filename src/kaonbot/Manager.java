@@ -1,5 +1,4 @@
 package kaonbot;
-import java.util.ArrayList;
 import java.util.List;
 
 import bwapi.Game;

@@ -110,13 +110,9 @@ public class DepotManager extends AbstractManager {
 		List<ProductionOrder> toReturn = new ArrayList<ProductionOrder>();
 		double depotPriority = getDepotPriority();
 		int depotsToQueue = NUM_DEPOTS_TO_QUEUE;
-		
-		for(BuildingOrder o: ProductionQueue.getActiveOrders()){
-			if(o.getUnitType() == UnitType.Terran_Supply_Depot){
-				depotsToQueue -= 1;
-				depotPriority = depotPriority / 2;
-			}
-		}
+		int activeDepotOrders = ProductionQueue.numActiveOrders(UnitType.Terran_Supply_Depot);
+		depotsToQueue -= activeDepotOrders;
+		depotPriority = depotPriority / (2 * activeDepotOrders);
 		
 		if(depotsToQueue > 0){
 			toReturn.add(new BuildingOrder(100, 0, depotPriority, 
