@@ -19,7 +19,7 @@ import bwta.BaseLocation;
 
 public class KaonBot extends DefaultBWListener {
 
-	public static boolean debug = true;
+	public static boolean debug = false;
     public static Mirror mirror = new Mirror();
 
     public static double SCV_BUILDER_COMMANDEER_PRIORITY = 100000.0;
@@ -439,7 +439,7 @@ public class KaonBot extends DefaultBWListener {
     }
     
     public void displayDebugGraphics(){
-    	//TODO add flag
+    	if(!debug) return;
     	
     	bpInstance.drawReservations();
     	for(Manager m: managerList){

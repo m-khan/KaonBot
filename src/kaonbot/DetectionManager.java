@@ -22,7 +22,7 @@ public class DetectionManager extends AbstractManager {
 	private ArrayList<Unit> comsats = new ArrayList<Unit>();
 	private static final double FIRST_CLOAK_BONUS = 30;
 	private static final int FLOAT_PASSIVE_TICK_THRESHOLD = 500;
-	private static final double TICK_MULT = 0.001;
+	private static final double TICK_MULT = 0.0001;
 	private static final double TURRET_DECREMENT = -0.5;
 	private static final double COMSAT_DECREMENT = -1.0;
 	private static final double FAILED_SCAN = 1.0;
@@ -56,9 +56,7 @@ public class DetectionManager extends AbstractManager {
 
 	@Override
 	public void handleNewUnit(Unit unit, boolean friendly, boolean enemy) {
-		if(enemy && unit.getType().isBuilding()){
-			requestScan(unit.getPosition());
-		} else if(enemy && unit.isCloaked()){
+		if(enemy && unit.isCloaked()){
 			requestScan(unit.getPosition());
 			if(firstCloak == false){
 				incrementPriority(getVolitility() * FIRST_CLOAK_BONUS, true);

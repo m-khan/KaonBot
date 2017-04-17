@@ -113,6 +113,7 @@ public class EconomyManager extends AbstractManager{
 			double nScore = expandScores[i];
 			nScore = nScore - lowScore;
 			nScore = nScore / (highScore - lowScore);
+			nScore = nScore * b.mins.size() / 9;
 			if(b.cc == null) {
 				if(totalSCVRequired > 0){
 					list.add(new BuildingOrder(400, 0, this.usePriority(EXPO_MULT * nScore), 
