@@ -15,7 +15,7 @@ public class BioUpgradeManager extends AbstractManager {
 	private static final int GAS_THRESHOLD = 100;
 	private static final double NEW_ORGANIC_MULT = 0.1;
 	private static final int FLOAT_PASSIVE_TICK_THRESHOLD = 1000;
-	private static final double TICK_MULT = 0.01;
+	private static final double TICK_MULT = 0.0001;
 	private Unit academy = null;
 	private Unit ebay = null;
 	private int attackLevel = 0;

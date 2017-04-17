@@ -14,6 +14,7 @@ public class BuildingPlacer {
 
 	private static BuildingPlacer buildingPlacer = new BuildingPlacer();
 	private static Map<String, TilePosition> buildCache = new HashMap<String, TilePosition>();
+	private static final int NULL_CACHE_RECALC_CHANCE = 1000;
 	private Game game;
 	private boolean[][] reservationMap;
 	private Color[][] reservationColors;
@@ -138,6 +139,15 @@ public class BuildingPlacer {
 		
 		if(buildCache.containsKey(sig)){
 			TilePosition spot = buildCache.get(sig);
+			
+			if(spot == null){
+				KaonBot.print("Null cache entry for " + buildingType.toString(), true);
+				if(KaonUtils.getRandom().nextInt(NULL_CACHE_RECALC_CHANCE) != 1){
+					return null;
+				}
+				KaonBot.print("Null cache entry will be recalculated", false);
+			}
+			
 //			KaonBot.print(sig + ": " + buildCache.get(sig));
 //			KaonBot.print("reserved: " + spotIsReserved(spot.getX(), spot.getY(), buildingType));
 //			KaonBot.print("can build: " + game.canBuildHere(spot, buildingType, builder, false));
@@ -159,13 +169,15 @@ public class BuildingPlacer {
 		int maxDist = 3;
 		int stopDist = 20;
 		
+		String cacheSig = buildingType.toString() + aroundTile.getX() + aroundTile.getY();
+		
 		while ((maxDist < stopDist) && (ret == null)) {
 			for (int i=aroundTile.getX()-maxDist; i<=aroundTile.getX()+maxDist; i++) {
 				for (int j=aroundTile.getY()-maxDist; j<=aroundTile.getY()+maxDist; j++) {
 					if (!spotIsReserved(i, j, buildingType)) {
 						if (game.canBuildHere(new TilePosition(i, j), buildingType, builder, false)) {
 							TilePosition toReturn = new TilePosition(i, j);
-							buildCache.put(buildingType.toString() + aroundTile.getX() + aroundTile.getY(), toReturn);
+							buildCache.put(cacheSig, toReturn);
 							return toReturn;
 						}
 					}
@@ -175,6 +187,7 @@ public class BuildingPlacer {
 		}
 		
 		if (ret == null) {
+			buildCache.put(cacheSig, null);
 			KaonBot.econManager.findNewMainBase();
 			KaonBot.print("Unable to find suitable build position for " + buildingType.toString(), true);
 		}

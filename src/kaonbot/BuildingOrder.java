@@ -34,6 +34,9 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 		if(this.position == null){
 			try{
 				this.position = BuildingPlacer.getInstance().getBuildTile(toProduce, KaonBot.mainPosition.getTilePosition());
+				if(this.position == null){
+					KaonBot.econManager.findNewMainBase();
+				}
 			}catch(Exception e){
 				e.printStackTrace();
 			}
