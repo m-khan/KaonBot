@@ -1,19 +1,19 @@
 package kaonbot;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import bwapi.Color;
 import bwapi.Game;
 import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
-import bwta.BWTA;
 
 
 public class BuildingPlacer {
 
 	private static BuildingPlacer buildingPlacer = new BuildingPlacer();
-	private static HashMap<UnitType, TilePosition> buildCache = new HashMap<UnitType, TilePosition>();
+	private static Map<String, TilePosition> buildCache = new HashMap<String, TilePosition>();
 	private Game game;
 	private boolean[][] reservationMap;
 	private Color[][] reservationColors;
@@ -25,7 +25,7 @@ public class BuildingPlacer {
 	}
 	
 	public void clearCache(){
-		buildCache.clear();
+		//buildCache.clear();
 	}
 	
 	public void reserve(TilePosition p, UnitType building, Color color){
@@ -108,71 +108,64 @@ public class BuildingPlacer {
 						color = reservationColors[i][j];
 						game.drawBoxMap(i * 32, j * 32, i * 32 + 32, j * 32 + 32, color, false);
 					} 
-//					else {
-//						color = new Color(100, 100, 100);
-//					}
-					//game.drawTextMap(i * 32,  j * 32, " " + i + "\n " + j);
+					else {
+//						color = new Color(0, 0, 0);
+//						game.drawBoxMap(i * 32, j * 32, i * 32 + 32, j * 32 + 32, color, false);
+					}
 				}
 			}
 		}
 	}
 	
-	public Unit getSuitableBuilder(TilePosition position, double priority, UnitCommander searcher){
+	public Unit getSuitableBuilder(TilePosition position){
 		List<Claim> claimList = KaonBot.getAllClaims();
 		Claim c = KaonUtils.getClosestClaim(position.toPosition(), claimList, UnitType.Terran_SCV, 
-				priority * KaonBot.SCV_COMMANDEER_BUILDING_MULTIPLIER / 2, searcher);
+				KaonBot.SCV_BUILDER_COMMANDEER_PRIORITY, null);
 		if(c != null){
 			return c.unit;
 		}
 		return null;
 	}
+
+	public TilePosition getBuildTile(UnitType buildingType, TilePosition aroundTile){
+		Unit builder = getSuitableBuilder(aroundTile);
+		if(builder == null){
+			KaonBot.print("Unable to find suitable builder for " + buildingType.toString(), true);
+			return null;
+		}
+
+		String sig = buildingType.toString() + aroundTile.getX() + aroundTile.getY();
+		
+		if(buildCache.containsKey(sig)){
+			TilePosition spot = buildCache.get(sig);
+//			KaonBot.print(sig + ": " + buildCache.get(sig));
+//			KaonBot.print("reserved: " + spotIsReserved(spot.getX(), spot.getY(), buildingType));
+//			KaonBot.print("can build: " + game.canBuildHere(spot, buildingType, builder, false));
+			if(!spotIsReserved(spot.getX(), spot.getY(), buildingType)) {
+				if(game.canBuildHere(buildCache.get(sig), buildingType, builder, false)){
+					return buildCache.get(sig);
+				}
+			}
+		}
+		return getBuildTile(builder, buildingType, aroundTile);
+	}
 	
 	// Returns a suitable TilePosition to build a given building type near 
 	// specified TilePosition aroundTile, or null if not found. (builder parameter is our worker)
-	public TilePosition getBuildTile(Unit builder, UnitType buildingType, TilePosition aroundTile) {
+	private TilePosition getBuildTile(Unit builder, UnitType buildingType, TilePosition aroundTile) {
 		//System.err.println("getBuildTile()");
 		
 		TilePosition ret = null;
 		int maxDist = 3;
 		int stopDist = 20;
 		
-//		// Refinery, Assimilator, Extractor
-//		if (buildingType.isRefinery()) {
-//			for (Unit n : game.neutral().getUnits()) {
-//				if ((n.getType() == UnitType.Resource_Vespene_Geyser) && 
-//						( Math.abs(n.getTilePosition().getX() - aroundTile.getX()) < stopDist ) &&
-//						( Math.abs(n.getTilePosition().getY() - aroundTile.getY()) < stopDist )
-//						) return n.getTilePosition();
-//			}
-//		}
-
-		if(buildCache.containsKey(buildingType) && game.canBuildHere(buildCache.get(buildingType), buildingType, builder, false)){
-			return buildCache.get(buildingType);
-		}
-		
 		while ((maxDist < stopDist) && (ret == null)) {
 			for (int i=aroundTile.getX()-maxDist; i<=aroundTile.getX()+maxDist; i++) {
 				for (int j=aroundTile.getY()-maxDist; j<=aroundTile.getY()+maxDist; j++) {
-					boolean spotIsReserved = false;
-					for(int x = i - 1; x < i + buildingType.tileWidth() + 2; x++){
-						for(int y = j - 1; y < j + buildingType.tileHeight() + 2; y++){
-							//System.out.println(x + ", " + y + ": " + reservationMap[x][y]);
-							if(x < game.mapWidth() && x >= 0 && y < game.mapHeight() && y >= 0) {
-								if(reservationMap[x][y]){
-									spotIsReserved = true;
-									break;
-								}
-							}
-						}
-						if(spotIsReserved){
-							break;
-						}
-					}
-					
-					if (game.canBuildHere(new TilePosition(i,j), buildingType, builder, false)) {
-						if (!spotIsReserved) {
+					if (!spotIsReserved(i, j, buildingType)) {
+						if (game.canBuildHere(new TilePosition(i, j), buildingType, builder, false)) {
 							TilePosition toReturn = new TilePosition(i, j);
-							buildCache.put(buildingType, toReturn);
+							buildCache.put(buildingType.toString() + aroundTile.getX() + aroundTile.getY(), toReturn);
 							return toReturn;
 						}
 					}
@@ -183,9 +176,23 @@ public class BuildingPlacer {
 		
 		if (ret == null) {
 			KaonBot.econManager.findNewMainBase();
-			KaonBot.print("Unable to find suitable build position for " + buildingType.toString());
+			KaonBot.print("Unable to find suitable build position for " + buildingType.toString(), true);
 		}
 		return ret;
+	}
+	
+	public boolean spotIsReserved(int xPos, int yPos, UnitType buildingType){
+		for(int x = xPos - 1; x < xPos + buildingType.tileWidth() + 2; x++){
+			for(int y = yPos - 1; y < yPos + buildingType.tileHeight() + 2; y++){
+				//System.out.println(x + ", " + y + ": " + reservationMap[x][y]);
+				if(x < game.mapWidth() && x >= 0 && y < game.mapHeight() && y >= 0) {
+					if(reservationMap[x][y]){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 	
 	public static TilePosition getTilePosition(int px, int py){

@@ -32,13 +32,10 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 		this.position = position;
 		
 		if(this.position == null){
-			Unit builder = BuildingPlacer.getInstance().getSuitableBuilder(KaonBot.getStartPosition().getTilePosition(), this.getPriority() * KaonBot.SCV_COMMANDEER_BUILDING_MULTIPLIER, null);
-			if(builder != null){
-				try{
-					this.position = BuildingPlacer.getInstance().getBuildTile(builder, UnitType.Terran_Supply_Depot, KaonBot.mainPosition.getTilePosition());
-				}catch(Exception e){
-					e.printStackTrace();
-				}
+			try{
+				this.position = BuildingPlacer.getInstance().getBuildTile(toProduce, KaonBot.mainPosition.getTilePosition());
+			}catch(Exception e){
+				e.printStackTrace();
 			}
 		}
 	}
@@ -145,7 +142,7 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 	private void findNewProducer(){
 		List<Claim> claimList = KaonBot.getAllClaims();
 		tempClaim = KaonUtils.getClosestClaim(position.toPosition(), claimList, UnitType.Terran_SCV, 
-				this.getPriority() * KaonBot.SCV_COMMANDEER_BUILDING_MULTIPLIER, null);
+				KaonBot.SCV_BUILDER_COMMANDEER_PRIORITY, null);
 		if(tempClaim != null){
 			producer = tempClaim.unit;
 		}
@@ -163,7 +160,7 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 			this.order = order;
 			debugColor = KaonUtils.getRandomColor();
 			
-			claim.commandeer(this, priority * KaonBot.SCV_COMMANDEER_BUILDING_MULTIPLIER * 2);
+			claim.commandeer(this, KaonBot.SCV_BUILDER_COMMANDEER_PRIORITY * 2);
 			claim.addOnCommandeer(new Runnable(){
 				@Override
 				public void run() {

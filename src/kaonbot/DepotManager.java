@@ -20,7 +20,7 @@ public class DepotManager extends AbstractManager {
 	Map<Integer, Unit> depotList = new HashMap<Integer, Unit>();
 	int frameCount = 0;
 	final int FRAME_LOCK = 50;
-	final int NUM_DEPOTS_TO_QUEUE = 5;
+	final int NUM_DEPOTS_TO_QUEUE = 1;
 	
 	public DepotManager(double baselinePriority, double volatilityScore, EconomyManager econ, Player player) {
 		super(baselinePriority, volatilityScore);
@@ -109,10 +109,10 @@ public class DepotManager extends AbstractManager {
 	public List<ProductionOrder> getProductionRequests() {
 		List<ProductionOrder> toReturn = new ArrayList<ProductionOrder>();
 		double depotPriority = getDepotPriority();
-		int depotsToQueue = NUM_DEPOTS_TO_QUEUE;
+		int depotsToQueue = NUM_DEPOTS_TO_QUEUE + player.supplyUsed() / 50;
 		int activeDepotOrders = ProductionQueue.numActiveOrders(UnitType.Terran_Supply_Depot);
 		depotsToQueue -= activeDepotOrders;
-		depotPriority = depotPriority / (2 * (activeDepotOrders + 1));
+//		depotPriority = depotPriority / (2 * (activeDepotOrders + 1));
 		
 		if(depotsToQueue > 0){
 			toReturn.add(new BuildingOrder(100, 0, depotPriority, 

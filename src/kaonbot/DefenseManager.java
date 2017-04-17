@@ -186,12 +186,9 @@ public class DefenseManager extends AbstractManager {
 		}
 		
 		private void findAndReserveBunkerPosition(){
-			Unit builder = BuildingPlacer.getInstance().getSuitableBuilder(fortCenter.toTilePosition(), usePriority(), KaonBot.defenseManager);
-			if(builder != null){
-				nextBunker = BuildingPlacer.getInstance().getBuildTile(builder, UnitType.Terran_Bunker, fortCenter.toTilePosition());
-				if(nextBunker != null){
-					BuildingPlacer.getInstance().reserve(nextBunker, UnitType.Terran_Bunker, new Color(255, 255, 255));
-				}
+			nextBunker = BuildingPlacer.getInstance().getBuildTile(UnitType.Terran_Bunker, fortCenter.toTilePosition());
+			if(nextBunker != null){
+				BuildingPlacer.getInstance().reserve(nextBunker, UnitType.Terran_Bunker, new Color(255, 255, 255));
 			}
 		}
 		

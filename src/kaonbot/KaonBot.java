@@ -22,7 +22,7 @@ public class KaonBot extends DefaultBWListener {
 	public static boolean debug = true;
     public static Mirror mirror = new Mirror();
 
-    public static double SCV_COMMANDEER_BUILDING_MULTIPLIER = 1000.0;
+    public static double SCV_BUILDER_COMMANDEER_PRIORITY = 10000000.0;
     
     private static Game game;
 

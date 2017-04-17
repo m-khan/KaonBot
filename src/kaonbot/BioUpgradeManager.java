@@ -13,12 +13,15 @@ import bwapi.UpgradeType;
 public class BioUpgradeManager extends AbstractManager {
 
 	private static final int GAS_THRESHOLD = 100;
+	private static final double NEW_ORGANIC_MULT = 0.1;
+	private static final int FLOAT_PASSIVE_TICK_THRESHOLD = 1000;
+	private static final double TICK_MULT = 0.01;
 	private Unit academy = null;
 	private Unit ebay = null;
 	private int attackLevel = 0;
 	private int armorLevel = 0;
 //	private Unit sciFac = null;
-	private static final double EBAY_PRIORITY = 0.9;
+	private static final double EBAY_PRIORITY = 0.5;
 	private final boolean ATTACK_FIRST;
 	private ArrayList<Integer> upgradePrices = new ArrayList<Integer>(Arrays.asList(100, 175, 250));
 	
@@ -51,7 +54,7 @@ public class BioUpgradeManager extends AbstractManager {
 		
 		if(friendly){
 			if(type.isOrganic() && KaonBot.getGas() > GAS_THRESHOLD){
-				incrementPriority(getVolitility(), false);
+				incrementPriority(getVolitility() * NEW_ORGANIC_MULT, false);
 			}
 		}
 	}
@@ -77,6 +80,9 @@ public class BioUpgradeManager extends AbstractManager {
 	@Override
 	public void runFrame() {
 		// TODO Auto-generated method stub
+		if(KaonBot.getGas() > FLOAT_PASSIVE_TICK_THRESHOLD && KaonBot.getMinerals() > FLOAT_PASSIVE_TICK_THRESHOLD){
+			incrementPriority(getVolitility() * TICK_MULT, false);
+		}
 
 	}
 
