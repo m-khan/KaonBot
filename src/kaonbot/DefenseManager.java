@@ -425,10 +425,13 @@ public class DefenseManager extends AbstractManager {
 		targetPositions.clear();
 		for(BaseLocation b: KaonBot.econManager.getBases()){
 			for(Unit e : KaonBot.getGame().getUnitsInRadius(b.getPosition(), DEFENSE_RADIUS)){
-				if(KaonBot.isEnemy(e) && !e.isCloaked()){
+				if(KaonBot.isEnemy(e)){
 					//incrementPriority(getVolitility() * NEW_TARGET, false);
 					targetList.add(0, e);
 					targetPositions.add(e.getPosition());
+//					if(e.isCloaked() || e.isBurrowed()){
+						KaonBot.detectionManager.requestScan(e.getPosition());
+//					}
 //					newTargetList.add(e);
 //					newTargetPositions.add(e.getPosition());
 				}

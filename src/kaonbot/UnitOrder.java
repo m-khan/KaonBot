@@ -8,9 +8,9 @@ import bwapi.UnitType;
 
 public class UnitOrder extends ProductionOrder implements Comparator<ProductionOrder>{
 	
-	private Unit producer;
+	protected Unit producer;
 	private Position producerPosition;
-	private UnitType toProduce;
+	protected UnitType toProduce;
 	
 	public UnitOrder(int minerals, int gas, double priority, Unit producer, UnitType toProduce){
 		super(ProductionOrder.UNIT, minerals, gas, priority);

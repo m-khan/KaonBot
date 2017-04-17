@@ -22,7 +22,7 @@ public class KaonBot extends DefaultBWListener {
 	public static boolean debug = true;
     public static Mirror mirror = new Mirror();
 
-    public static double SCV_BUILDER_COMMANDEER_PRIORITY = 10000000.0;
+    public static double SCV_BUILDER_COMMANDEER_PRIORITY = 100000.0;
     
     private static Game game;
 
@@ -49,6 +49,7 @@ public class KaonBot extends DefaultBWListener {
     public static DefenseManager defenseManager;
     public static ScoutManager scoutManager;
     public static BioUpgradeManager bioUpgradeManager;
+    public static DetectionManager detectionManager;
     
     private final int STALE_CLAIM = 100;
     private final int GARBAGE_COLLECT_RATE = 100;
@@ -159,7 +160,7 @@ public class KaonBot extends DefaultBWListener {
 	        BWTA.readMap();
 	        BWTA.analyze();
 
-	        Random r = new Random();
+	        Random r = KaonUtils.getRandom();
 	        
 	        startPosition = BWTA.getStartLocation(self);
 	        mainPosition = startPosition;
@@ -168,7 +169,8 @@ public class KaonBot extends DefaultBWListener {
 	        rushManager = new RushManager(r.nextDouble(), r.nextDouble());
 	        defenseManager = new DefenseManager(r.nextDouble(), r.nextDouble());
 	        scoutManager = new ScoutManager(r.nextDouble(), r.nextDouble());
-	        bioUpgradeManager = new BioUpgradeManager(r.nextDouble() * 0.5, r.nextDouble());
+	        bioUpgradeManager = new BioUpgradeManager(r.nextDouble() * 0.1, r.nextDouble());
+	        detectionManager = new DetectionManager(r.nextDouble() * 0.1, r.nextDouble());
 	        
 	        game.sendTextEx(false, "ECON: " + econManager.usePriority() + "/" + econManager.getVolitility());
 	        game.sendTextEx(false, "DEPT: " + depotManager.usePriority() + "/" + depotManager.getVolitility());
@@ -176,6 +178,7 @@ public class KaonBot extends DefaultBWListener {
 	        game.sendTextEx(false, "DEFN: " + defenseManager.usePriority() + "/" + defenseManager.getVolitility());
 	        game.sendTextEx(false, "DEFN: " + scoutManager.usePriority() + "/" + scoutManager.getVolitility());
 	        game.sendTextEx(false, "DEFN: " + bioUpgradeManager.usePriority() + "/" + bioUpgradeManager.getVolitility());
+	        game.sendTextEx(false, "DEFN: " + detectionManager.usePriority() + "/" + detectionManager.getVolitility());
 
 	        KaonBot.print("ECON: " + econManager.usePriority() + "/" + econManager.getVolitility());
 	        KaonBot.print("DEPT: " + depotManager.usePriority() + "/" + depotManager.getVolitility());
@@ -183,6 +186,7 @@ public class KaonBot extends DefaultBWListener {
 	        KaonBot.print("DEFN: " + defenseManager.usePriority() + "/" + defenseManager.getVolitility());
 	        KaonBot.print("DEFN: " + scoutManager.usePriority() + "/" + scoutManager.getVolitility());
 	        KaonBot.print("DEFN: " + bioUpgradeManager.usePriority() + "/" + bioUpgradeManager.getVolitility());
+	        KaonBot.print("DEFN: " + detectionManager.usePriority() + "/" + detectionManager.getVolitility());
 
 	        managerList.add(econManager);
 	        managerList.add(depotManager);
@@ -190,6 +194,7 @@ public class KaonBot extends DefaultBWListener {
 	        managerList.add(defenseManager);
 	        managerList.add(scoutManager);
 	        managerList.add(bioUpgradeManager);
+	        managerList.add(detectionManager);
 	        
 	        for(Manager m: managerList){
 	        	m.init(game);
