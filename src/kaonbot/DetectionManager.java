@@ -80,13 +80,9 @@ public class DetectionManager extends AbstractManager {
 				incrementPriority(getVolitility() * TURRET_DECREMENT * -1, false);
 			}
 			
-			if(scanCooldown == 0){
-				for(Unit unit: u.getUnitsInRadius(100)){
-					if(unit.isCloaked() || unit.isBurrowed()){
-						if(requestScan(unit.getPosition())){
-							scanCooldown = SCAN_COOLDOWN;
-						}
-					}
+			for(Unit unit: u.getUnitsInRadius(100)){
+				if(unit.isCloaked() || unit.isBurrowed()){
+					requestScan(unit.getPosition());
 				}
 			}
 		}
@@ -116,10 +112,17 @@ public class DetectionManager extends AbstractManager {
 	}
 
 	public boolean requestScan(Position position){
+		return requestScan(position, false);
+	}
+	
+	public boolean requestScan(Position position, boolean ignoreCooldown){
+		if(scanCooldown > 0 && !ignoreCooldown) return false;
+		
 		for(Unit comsat: comsats){
 			if(comsat.canUseTechPosition(TechType.Scanner_Sweep, position)){
 				KaonBot.print("SCANNING " + position);
 				comsat.useTech(TechType.Scanner_Sweep, position);
+				scanCooldown = SCAN_COOLDOWN;
 				return true;
 			}
 		}

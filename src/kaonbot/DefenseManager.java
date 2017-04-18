@@ -429,9 +429,9 @@ public class DefenseManager extends AbstractManager {
 					//incrementPriority(getVolitility() * NEW_TARGET, false);
 					targetList.add(0, e);
 					targetPositions.add(e.getPosition());
-//					if(e.isCloaked() || e.isBurrowed()){
+					if(e.isCloaked() || e.isBurrowed()){
 						KaonBot.detectionManager.requestScan(e.getPosition());
-//					}
+					}
 //					newTargetList.add(e);
 //					newTargetPositions.add(e.getPosition());
 				}
@@ -440,10 +440,14 @@ public class DefenseManager extends AbstractManager {
 
 		for(Position p: defensePoints){
 			for(Unit e : KaonBot.getGame().getUnitsInRadius(p, DEFENSE_RADIUS)){
-				if(KaonBot.isEnemy(e) && !e.isCloaked()){
+				if(KaonBot.isEnemy(e)){
 					//incrementPriority(getVolitility() * NEW_TARGET, false);
 					targetList.add(0, e);
 					targetPositions.add(e.getPosition());
+					if(e.isCloaked() || e.isBurrowed()){
+						KaonBot.detectionManager.requestScan(e.getPosition());
+					}
+					
 //					newTargetList.add(e);
 //					newTargetPositions.add(e.getPosition());
 				}

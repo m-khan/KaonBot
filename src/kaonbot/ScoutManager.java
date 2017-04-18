@@ -287,7 +287,7 @@ public class ScoutManager extends AbstractManager {
 			}
 
 			if(!getUnit().exists() || getUnit().getOrder() == null){
-				if(KaonBot.detectionManager.requestScan(toScout.getPosition())){
+				if(KaonBot.detectionManager.requestScan(toScout.getPosition(), true)){
 					setChecked(toScout);
 				}
 				
