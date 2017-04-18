@@ -53,6 +53,10 @@ public class ScoutManager extends AbstractManager {
 		lastChecked.put(b, KaonBot.getGame().getFrameCount());
 	}
 	
+	public boolean isBaseSafe(BaseLocation location){
+		return numBuildings.get(location) <= 0;
+	}
+	
 	public BaseLocation getBestAttackLocation(){
 		int min = 10000;
 		BaseLocation toAttack = null;

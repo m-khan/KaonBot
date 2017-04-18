@@ -88,6 +88,7 @@ public class EconomyManager extends AbstractManager{
 		double[] expandScores = new double[bases.size()];
 		Base init = bases.get(0);
 		double highScore = init.gdFromEnemy - init.gdFromStart;
+		highScore += init.getTotalMinerals();
 		double lowScore = highScore;
 		
 		int totalSCVRequired = 0;
@@ -97,7 +98,7 @@ public class EconomyManager extends AbstractManager{
 		for(Base b: bases){
 			totalSCVRequired += b.requiredMiners();
 
-			double score = b.gdFromEnemy - b.gdFromStart;
+			double score = b.gdFromEnemy - b.gdFromStart + b.getTotalMinerals();
 			expandScores[i] = score;
 			if(score > highScore){
 				highScore = score;
@@ -113,14 +114,16 @@ public class EconomyManager extends AbstractManager{
 			double nScore = expandScores[i];
 			nScore = nScore - lowScore;
 			nScore = nScore / (highScore - lowScore);
-			nScore = nScore * b.mins.size() / 9;
+			
 			if(b.cc == null) {
-				if(totalSCVRequired > 0){
-					list.add(new BuildingOrder(400, 0, this.usePriority(EXPO_MULT * nScore), 
-							UnitType.Terran_Command_Center, b.location.getTilePosition()));
-				} else {
-					list.add(new BuildingOrder(400, 0, this.usePriority(EXPO_SATURATED * nScore), 
-							UnitType.Terran_Command_Center, b.location.getTilePosition()));
+				if(KaonBot.scoutManager.isBaseSafe(b.location)){
+					if(totalSCVRequired > 0){
+						list.add(new BuildingOrder(400, 0, this.usePriority(EXPO_MULT * nScore), 
+								UnitType.Terran_Command_Center, b.location.getTilePosition()));
+					} else {
+						list.add(new BuildingOrder(400, 0, this.usePriority(EXPO_SATURATED * nScore), 
+								UnitType.Terran_Command_Center, b.location.getTilePosition()));
+					}
 				}
 			} else if(b.cc.exists()){
 				if(b.gas != null && b.extractor == null){
@@ -358,6 +361,14 @@ public class EconomyManager extends AbstractManager{
 			}
 			
 			gdFromEnemy = distance / baseLocations.size() - 1;
+		}
+		
+		public int getTotalMinerals(){
+			int sum = 0;
+			for(Unit m: mins){
+				sum += m.getResources();
+			}
+			return sum;
 		}
 		
 		protected void addMinerals(Unit unit){
