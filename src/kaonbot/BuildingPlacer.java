@@ -64,7 +64,7 @@ public class BuildingPlacer {
 			mark(u, true);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			KaonBot.printStackTrace(e);
 		}
 	}
 	

@@ -96,12 +96,17 @@ public class KaonBot extends DefaultBWListener {
     }
     
     public static void print(String message, boolean error){
+    	if(!debug) return;
     	try {
 			if(error) System.err.println(game.getFrameCount() + " " + message);
 			else System.out.println(game.getFrameCount() + " " + message);
     	} catch (Exception e) {
 			System.err.println("ERROR PRINTING MESSAGE");
 		}
+    }
+    
+    public static void printStackTrace(Exception e){
+    	if(debug) e.printStackTrace();
     }
     
     public static void print(String message){
@@ -208,7 +213,7 @@ public class KaonBot extends DefaultBWListener {
 	        }
     	}catch(Exception e){
     		showMessage("Error in onStart(): " + e);
-    		e.printStackTrace();
+    		printStackTrace(e);
     	}
     }
 
@@ -224,7 +229,7 @@ public class KaonBot extends DefaultBWListener {
         	}
     	}catch(Exception e){
     		showMessage("Error in onUnitComplete(): " + e);
-    		e.printStackTrace();
+    		printStackTrace(e);
     	}
     }
     
@@ -244,7 +249,7 @@ public class KaonBot extends DefaultBWListener {
     		}
     	}catch(Exception e){
     		showMessage("Error in onUnitDiscover(): " + e);
-    		e.printStackTrace();
+    		printStackTrace(e);
     	}
     }
     
@@ -285,7 +290,7 @@ public class KaonBot extends DefaultBWListener {
     		
     	}catch(Exception e){
     		showMessage("Error in onUnitDestroy(): " + e);
-    		e.printStackTrace();
+    		printStackTrace(e);
     	}
     }
     
@@ -301,7 +306,7 @@ public class KaonBot extends DefaultBWListener {
     		runFrame();
     	} catch(Exception e){
     		showMessage("Error in onFrame(): " + e);
-    		e.printStackTrace();
+    		printStackTrace(e);
     	}
     	game.drawTextScreen(0, 0, "FRAME: " + game.getFrameCount());
     	game.drawTextScreen(200, 0, "APM: " + game.getAPM());
@@ -457,7 +462,7 @@ public class KaonBot extends DefaultBWListener {
     	try{
             new KaonBot().run();
     	}catch(Exception e){
-    		e.printStackTrace();
+    		printStackTrace(e);
     	}
     }
 }

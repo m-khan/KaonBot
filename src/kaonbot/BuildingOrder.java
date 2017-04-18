@@ -38,7 +38,7 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 					KaonBot.econManager.findNewMainBase();
 				}
 			}catch(Exception e){
-				e.printStackTrace();
+				KaonBot.printStackTrace(e);
 			}
 		}
 	}
