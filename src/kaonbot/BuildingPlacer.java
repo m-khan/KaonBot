@@ -146,16 +146,15 @@ public class BuildingPlacer {
 					return null;
 				}
 				KaonBot.print("Null cache entry will be recalculated", false);
+			} else if(!spotIsReserved(spot.getX(), spot.getY(), buildingType)) {
+				if(game.canBuildHere(buildCache.get(sig), buildingType, builder, false)){
+					return buildCache.get(sig);
+				}
 			}
 			
 //			KaonBot.print(sig + ": " + buildCache.get(sig));
 //			KaonBot.print("reserved: " + spotIsReserved(spot.getX(), spot.getY(), buildingType));
 //			KaonBot.print("can build: " + game.canBuildHere(spot, buildingType, builder, false));
-			if(!spotIsReserved(spot.getX(), spot.getY(), buildingType)) {
-				if(game.canBuildHere(buildCache.get(sig), buildingType, builder, false)){
-					return buildCache.get(sig);
-				}
-			}
 		}
 		return getBuildTile(builder, buildingType, aroundTile);
 	}
