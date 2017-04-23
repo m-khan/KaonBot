@@ -47,10 +47,6 @@ public class DefenseManager extends AbstractManager {
 	private int targetListUpdateFrame = 0;
 	private int targetIndex;
 	private int emergencyDefenderCount = 0;
-	final int EMERGENCY_DEFENDER_MAX_SUPPLY = 50;
-	final int EMERGENCY_DEFENDER_CLAIM_HP   = 50;
-	final int EMERGENCY_DEFENDER_MIN_HEALTH = 30;
-	final int EMERGENCY_DEFENDER_BASE_RANGE = 1000;
 	private List<Unit> newExpansions = new ArrayList<Unit>();
 	
 	public DefenseManager(double baselinePriority, double volitilityScore) {
@@ -320,28 +316,14 @@ public class DefenseManager extends AbstractManager {
 		}
 	}
 	
-	public boolean needEmergencyDefenders(int extraClaims){
-		return KaonBot.getSupply() < EMERGENCY_DEFENDER_MAX_SUPPLY && 
-				targetList.size() > getAllBunkers().size() * BUNKER_RATING + claimList.size() + extraClaims - emergencyDefenderCount / 2;
-	}
-	
-	public boolean needEmergencyDefenders(){
-		return needEmergencyDefenders(0);
-	}
-	
 	@Override
 	public ArrayList<Double> claimUnits(List<Unit> unitList) {
 		ArrayList<Double> toReturn = new ArrayList<Double>(unitList.size());
-		
-		int workerClaims = emergencyDefenderCount;
 		
 		for(Unit unit: unitList){
 			UnitType type = unit.getType();
 			if(!type.isWorker() && !type.isBuilding()) {
 				toReturn.add(usePriority());
-			}else if(type.isWorker() && needEmergencyDefenders(workerClaims) && unit.getHitPoints() >= EMERGENCY_DEFENDER_CLAIM_HP) {
-				workerClaims++;
-				toReturn.add(usePriority() * 10);
 			}else {
 				toReturn.add(DO_NOT_WANT);
 			}
@@ -582,22 +564,6 @@ public class DefenseManager extends AbstractManager {
 			if(microCount < MICRO_LOCK){
 				microCount++;
 				return false;
-			}
-			
-			if (getType().isWorker()) {
-				if(!needEmergencyDefenders() || getUnit().getHitPoints() < EMERGENCY_DEFENDER_MIN_HEALTH){
-					return true;
-				} else {
-					boolean isCloseToBase = false;
-					for(BaseLocation b: KaonBot.econManager.getBases()){
-						if(b.getDistance(getUnit().getPosition()) < EMERGENCY_DEFENDER_BASE_RANGE){
-							isCloseToBase = true;
-						}
-					}
-					if(!isCloseToBase){
-						return true;
-					}
-				}
 			}
 			
 			if(!claimList.containsKey(getUnit().getID())){

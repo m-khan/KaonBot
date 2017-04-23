@@ -33,6 +33,9 @@ public class EconomyManager extends AbstractManager{
 	private final int GAS_CAP = 500;
 	private final int GAS_MIN = 200;
 	private final int GAS_CHANCE = 100;
+	private final int WORKER_ENGAGE_RANGE = 64;
+	private final int WORKER_ENGAGE_MIN_HP = 21;
+	private final int WORKER_DISENGAGE_RANGE = 100;
 	
 	
 	private Set<Unit> allWorkers = new HashSet<Unit>();
@@ -346,6 +349,7 @@ public class EconomyManager extends AbstractManager{
 		boolean active = false;
 		ArrayList<Miner> miners = new ArrayList<Miner>();
 		ArrayList<Miner> gasers = new ArrayList<Miner>();
+		ArrayList<Position> defenseTargets = new ArrayList<Position>();
 		
 		protected Base(BaseLocation location, BaseLocation start)
 		{
@@ -393,7 +397,7 @@ public class EconomyManager extends AbstractManager{
 				return false;
 			}
 			if(extractor != null && KaonBot.getGas() < GAS_CAP && extractor.exists() && gasers.size() < 3){
-				gasers.add(new Miner(unit, extractor, false));
+				gasers.add(new Miner(unit, extractor, false, this));
 				return true;
 			} else if(mins.size() > 0){
 				
@@ -406,10 +410,10 @@ public class EconomyManager extends AbstractManager{
 
 				if(patch >= mins.size()){
 					patch = 0;
-					miners.add(new Miner(unit, mins.get(patch), false));
+					miners.add(new Miner(unit, mins.get(patch), false, this));
 					return true;
 				} else {
-					miners.add(new Miner(unit, mins.get(patch), true));
+					miners.add(new Miner(unit, mins.get(patch), true, this));
 					return true;
 				}
 			}
@@ -473,6 +477,13 @@ public class EconomyManager extends AbstractManager{
 				}
 			}
 			
+			defenseTargets.clear();
+			for(Unit u: KaonBot.defenseManager.targetList){
+				if(u.getRegion() == cc.getRegion() && !u.isFlying()){
+					defenseTargets.add(u.getPosition());
+				}
+			}
+			
 			// run SCV updates, remove if they request
 			for(Miner m : miners){
 				if(m.update()){
@@ -497,7 +508,6 @@ public class EconomyManager extends AbstractManager{
 				}
 			}
 			
-			
 			if(requiredMiners() < 0){
 				for(int i = miners.size() - requiredMiners(); i < miners.size(); i++)
 				{
@@ -514,6 +524,7 @@ public class EconomyManager extends AbstractManager{
 					getClaim(u.getID()).free();
 				}
 			}
+			
 			return freeUnits;
 		}
 	}
@@ -525,12 +536,14 @@ public class EconomyManager extends AbstractManager{
 //		private final int MICRO_LOCK = 0; //num frames to skip between micro actions
 //		private int microCount = 0; 
 		private boolean lock;
+		private Base base;
 		
-		public Miner(Claim miner, Unit resource, boolean lock){
+		public Miner(Claim miner, Unit resource, boolean lock, Base base){
 			super(miner);
 			this.resource = resource;
 			this.isMineral = resource.getType().isMineralField();
 			this.lock = lock;
+			this.base = base;
 			getUnit().gather(resource);
 }
 		
@@ -545,9 +558,24 @@ public class EconomyManager extends AbstractManager{
 //				microCount++;
 //				return false;
 //			}
+			Position pos = getUnit().getPosition();
 			
-			if(KaonBot.defenseManager.needEmergencyDefenders()){
-				return true;
+			if(getUnit().isAttacking()){
+				if(getUnit().getHitPoints() < WORKER_ENGAGE_MIN_HP || pos.getDistance(resource.getPosition()) > WORKER_DISENGAGE_RANGE){
+					getUnit().gather(resource);
+				} else {
+					touchClaim();
+					return false;
+				}
+			} else {
+				if(base.defenseTargets.size() > 0 && getUnit().getHitPoints() > WORKER_ENGAGE_MIN_HP){
+					for(Position tPos: base.defenseTargets){
+						if(tPos.getDistance(pos) < WORKER_ENGAGE_RANGE){
+							getUnit().attack(tPos);
+							break;
+						}
+					}
+				}
 			}
 			
 			if(KaonBot.getGas() > GAS_CAP && !isMineral){
@@ -585,7 +613,8 @@ public class EconomyManager extends AbstractManager{
 				game.drawTextMap(b.cc.getPosition(), "Patches: " + b.mins.size() + 
 													 "\nWorkers: " + b.miners.size() + 
 													 "\nonGas: " + b.gasers.size() +
-													 "\nNeed: " + b.requiredMiners());
+													 "\nNeed: " + b.requiredMiners() + 
+													 "\nEnemies: " + b.defenseTargets.size());
 				
 				for(Miner m: b.miners){
 					game.drawLineMap(m.resource.getPosition(), m.getUnit().getPosition(), debugColor);

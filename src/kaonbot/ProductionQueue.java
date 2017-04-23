@@ -137,7 +137,8 @@ public class ProductionQueue extends PriorityQueue<ProductionOrder> {
 					gasRes += toExecute.getGas();
 				}
 				if(outputLines++ < OUTPUT_LIMIT) output.append("!" + toExecute + " - " + minRes  + "\n");
-				break;
+				min = 0;
+				gas = 0;
 				
 			} else {
 				// The order is already in progress we need to wait

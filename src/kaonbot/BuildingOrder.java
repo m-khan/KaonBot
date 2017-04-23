@@ -197,11 +197,13 @@ public class BuildingOrder extends ProductionOrder implements Comparator<Product
 			Unit builder = claim.unit;
 			if(builder.getOrder() == Order.ConstructingBuilding){
 				claim.touch();
-				order.setSpent();
 				if(building == null && builder.getBuildUnit() != null){
 					started = true;
 					building = builder.getBuildUnit();
+				} else if(building != null && building.getHitPoints() > 10){
+					order.setSpent();
 				}
+				
 			} else if(builder.isConstructing()){
 				claim.touch();
 				if(building == null && builder.getBuildUnit() != null){
