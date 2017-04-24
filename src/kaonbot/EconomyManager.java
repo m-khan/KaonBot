@@ -537,6 +537,7 @@ public class EconomyManager extends AbstractManager{
 //		private int microCount = 0; 
 		private boolean lock;
 		private Base base;
+		private Position attackPos = null;
 		
 		public Miner(Claim miner, Unit resource, boolean lock, Base base){
 			super(miner);
@@ -561,18 +562,24 @@ public class EconomyManager extends AbstractManager{
 			Position pos = getUnit().getPosition();
 			
 			if(getUnit().isAttacking()){
-				if(getUnit().getHitPoints() < WORKER_ENGAGE_MIN_HP || pos.getDistance(resource.getPosition()) > WORKER_DISENGAGE_RANGE){
+				if(getUnit().getHitPoints() < WORKER_ENGAGE_MIN_HP 
+						|| pos.getDistance(resource.getPosition()) > WORKER_DISENGAGE_RANGE 
+						|| getUnit().getPosition().equals(attackPos)){
 					getUnit().gather(resource);
 				} else {
 					touchClaim();
 					return false;
 				}
 			} else {
-				if(base.defenseTargets.size() > 0 && getUnit().getHitPoints() > WORKER_ENGAGE_MIN_HP){
+				if(base.defenseTargets.size() > 0 
+						&& getUnit().getHitPoints() > WORKER_ENGAGE_MIN_HP 
+						&& pos.getDistance(resource.getPosition()) < WORKER_DISENGAGE_RANGE){
 					for(Position tPos: base.defenseTargets){
 						if(tPos.getDistance(pos) < WORKER_ENGAGE_RANGE){
 							getUnit().attack(tPos);
-							break;
+							attackPos = tPos;
+							touchClaim();
+							return false;
 						}
 					}
 				}
