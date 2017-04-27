@@ -562,7 +562,8 @@ public class EconomyManager extends AbstractManager{
 			Position pos = getUnit().getPosition();
 			
 			if(getUnit().isAttacking()){
-				if(getUnit().getHitPoints() < WORKER_ENGAGE_MIN_HP 
+				if(base.defenseTargets.size() == 0
+						|| getUnit().getHitPoints() < WORKER_ENGAGE_MIN_HP 
 						|| pos.getDistance(resource.getPosition()) > WORKER_DISENGAGE_RANGE 
 						|| getUnit().getPosition().equals(attackPos)){
 					getUnit().gather(resource);
